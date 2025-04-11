@@ -1,8 +1,11 @@
+# Each container is its own service
+# The 
 services:
   app:
     build: ./app
     container_name: web-app
     hostname: web-app
+    # Take the ./app/src folder and plug it into the container in /appcode folder
     volumes: ["./app/src:/appcode"]
     ports:
       - 8501:8501
@@ -11,6 +14,7 @@ services:
     build: ./api
     container_name: web-api
     hostname: web-api
+    # Take the ./api folder and plug it into the container in /appcode folder
     volumes: ["./api:/apicode"]
     ports:
       - 4000:4000
@@ -21,6 +25,10 @@ services:
     image: mysql:9
     container_name: mysql_db
     hostname: db
+    # Since we are using a MySQL container (built from mysql9 image), when the
+    # container is created, mysql will execute all the sql files within our
+    # database-files. The "ro" at the end means copy the files such that they are
+    # read-only (and executable), but not writeable
     volumes:
       - ./database-files:/docker-entrypoint-initdb.d/:ro
     ports:

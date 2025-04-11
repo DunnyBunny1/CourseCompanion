@@ -4,6 +4,7 @@ from backend.db_connection import db
 from backend.simple.playlist import sample_playlist_data
 
 # This blueprint handles some basic routes that you can use for testing
+
 simple_routes = Blueprint('simple_routes', __name__)
 
 
@@ -30,7 +31,7 @@ def get_playlist_data():
     return response
 
 # ------------------------------------------------------------
-@simple_routes.route('/niceMesage', methods = ['GET'])
+@simple_routes.route('/niceMessage', methods = ['GET'])
 def affirmation():
     message = '''
     <H1>Think about it...</H1>
