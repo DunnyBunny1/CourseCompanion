@@ -1,5 +1,6 @@
 # Spring 2025 CS 3200 Project Template Repository
 
+Instinct
 This project is for our CS3200 educational online forum 
 This repo is a template for your semester project. It includes most of the infrastructure setup (containers), sample databases, and example UI pages. Explore it fully and ask questions!
 
