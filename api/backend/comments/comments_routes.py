@@ -106,7 +106,8 @@ def create_comment():
     r = cursor.execute(the_query, data)
     db.get_db().commit()
     
-    the_response = make_response(jsonify({"message": "Comment created successfully"}))
+    # TODO: Consider improving debugging by adding comment IDs 
+    the_response = make_response(jsonify({"message": "Comment created successfully with id number"}))
     the_response.status_code = 200
     the_response.mimetype = 'application/json'
     return the_response
