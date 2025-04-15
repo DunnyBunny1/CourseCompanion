@@ -6,14 +6,15 @@ from flask import current_app
 from backend.db_connection import db
 from backend.ml_models.model01 import predict
 
+
 # Creates a new blueprint object
 users = Blueprint('users', __name__)
+
 
 # Gets a specific user
 @users.route('/<id>', methods=['GET'])
 def search_user(id):
     cursor = db.get_db().cursor()
-    cursor.execute('use course_companion')
 
     query = '''
         SELECT userId, firstName, lastName, bio, birthdate, universityEmail
@@ -34,7 +35,6 @@ def search_user(id):
 @users.route('/<id>/role', methods=['GET'])
 def search_user_role(id):
     cursor = db.get_db().cursor()
-    cursor.execute('use course_companion')
 
     query = '''
         SELECT u.userId, firstName, lastName, uc.role, uc.courseId, uc.sectionId
@@ -58,7 +58,6 @@ def create_role(id):
     request_data = request.get_json()
     
     cursor = db.get_db().cursor()
-    cursor.execute('use course_companion')
 
     u_role = request_data.get('user_role')
     u_course = request_data.get('user_course')
@@ -72,8 +71,11 @@ def create_role(id):
     cursor.execute(query, (id, u_role, u_course, u_section))
     
     db.get_db().commit()
-    
-    return "User Course Added"
+
+    the_response = make_response(jsonify({"message": "User added successfully"}))
+    the_response.status_code = 200
+    the_response.mimetype = 'application/json'
+    return the_response
  
  
 # Remove user from a course
@@ -82,7 +84,6 @@ def delete_department(id):
     request_data = request.get_json()
     
     cursor = db.get_db().cursor()
-    cursor.execute('use course_companion')
 
     u_course = request_data.get('user_course')
     u_section = request_data.get('user_section')
@@ -95,5 +96,8 @@ def delete_department(id):
     cursor.execute(query, (id, u_course, u_section)) 
 
     db.get_db().commit()
-    
-    return "User course deleted"
+
+    the_response = make_response(jsonify({"message": "User in a course deleted successfully"}))
+    the_response.status_code = 200
+    the_response.mimetype = 'application/json'
+    return the_response

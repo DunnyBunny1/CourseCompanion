@@ -6,15 +6,16 @@ from flask import current_app
 from backend.db_connection import db
 from backend.ml_models.model01 import predict
 
+
 # Creates a new blueprint object
 departments = Blueprint('departments', __name__)
+
 
 # Gets all departments from the system
 @departments.route('/all', methods=['GET'])
 def get_departments():
 
     cursor = db.get_db().cursor()
-    cursor.execute('use course_companion')
 
     query = '''
         SELECT departmentId, departmentName, description
@@ -35,7 +36,6 @@ def create_departments():
     request_data = request.get_json()
     
     cursor = db.get_db().cursor()
-    cursor.execute('use course_companion')
 
     department_id = request_data.get('departmentId')
     description = request_data.get('description')
@@ -50,14 +50,16 @@ def create_departments():
     
     db.get_db().commit()
     
-    return "Department Added"
+    the_response = make_response(jsonify({"message": "Department added successfully"}))
+    the_response.status_code = 200
+    the_response.mimetype = 'application/json'
+    return the_response
 
 
 # Gets a specific department
 @departments.route('/search/<id>', methods=['GET'])
 def search_department(id): 
     cursor = db.get_db().cursor()
-    cursor.execute('use course_companion')
 
     query = '''
         SELECT departmentId, departmentName, description
@@ -80,7 +82,6 @@ def update_department(id):
     request_data = request.get_json()
     
     cursor = db.get_db().cursor()
-    cursor.execute('use course_companion')
     
     department_name = request_data.get('departmentName')
     description = request_data.get('description')
@@ -96,14 +97,17 @@ def update_department(id):
 
     db.get_db().commit()
     
-    return "Update made"
+    the_response = make_response(jsonify({"message": "Department updated successfully"}))
+    the_response.status_code = 200
+    the_response.mimetype = 'application/json'
+    return the_response
+
 
 # Deletes a specific department
 @departments.route('/delete/<id>', methods=['DELETE'])
 def delete_department(id):
     
     cursor = db.get_db().cursor()
-    cursor.execute('use course_companion')
     
     query = '''
         DELETE FROM department
@@ -114,4 +118,7 @@ def delete_department(id):
 
     db.get_db().commit()
     
-    return "Department deleted"
+    the_response = make_response(jsonify({"message": "Department deleted successfully"}))
+    the_response.status_code = 200
+    the_response.mimetype = 'application/json'
+    return the_response
