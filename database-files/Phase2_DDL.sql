@@ -1,9 +1,9 @@
 -- All subsequent DB commands will be executed in the context of
 -- course_companion
+-- DROP DATABASE IF EXISTS course_companion;
 
 CREATE DATABASE IF NOT EXISTS course_companion;
 USE course_companion;
-
 
 -- Table for post tags (hash-tags) that can be applied to posts
 CREATE TABLE IF NOT EXISTS tags
