@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 # import the main streamlit library as well
 # as SideBarLinks function from src/modules folder
 import streamlit as st
-# from modules.nav import SideBarLinks
+from modules.nav import SideBarLinks
 
 # streamlit supports reguarl and wide layout (how the controls
 # are organized/displayed on the screen).
@@ -26,7 +26,7 @@ st.session_state['authenticated'] = False
 # the links displayed on the left-side panel. 
 # IMPORTANT: ensure src/.streamlit/config.toml sets
 # showSidebarNavigation = false in the [client] section
-# SideBarLinks(show_home=True)
+SideBarLinks()
 
 # ***************************************************
 #    The major content of this page
@@ -37,6 +37,14 @@ logger.info("Loading the Home page of the app")
 st.title('Welcome to Course Companion :)')
 st.write('\n\n')
 st.write('### HI! Which page would you like to visit?')
+
+# Show the course companion logo logo 
+# Center the image with Streamlit's layout options
+col1, col2, col3 = st.columns([1, 2, 1])
+
+with col2:
+        st.image("assets/course-companion-logo.svg", width=500)
+
 
 # For each of the user personas for which we are implementing
 # functionality, we put a button on the screen that the user 
