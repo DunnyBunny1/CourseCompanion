@@ -171,9 +171,9 @@ def delete_post(post_id):
 # POST /posts/create - Create a new post [Henry-1] [Henry-2] [Jacobson-4]
 @posts.route('/posts/create', methods=['POST'])
 def create_post():
+    post_data = request.json
     current_app.logger.info(post_data)
     
-    post_data = request.json
     post_id = post_data['postId']
     title = post_data['title']
     content = post_data['content']
