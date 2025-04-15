@@ -52,28 +52,48 @@ def search_user_role(id):
     return the_response
 
 
-# Updates a users role
-@users.route('/update/<id>/role', methods=['PUT'])
-def update_user_role(id):
-
+# Add user with a certain role
+@users.route('/<id>/create/role', methods=['POST'])
+def create_role(id):
     request_data = request.get_json()
-
+    
     cursor = db.get_db().cursor()
     cursor.execute('use course_companion')
 
-    new_role = request_data.get('new_role')
-    course_id = request_data.get('course_id')
-    section_id = request_data.get('section_id')
+    u_role = request_data.get('user_role')
+    u_course = request_data.get('user_course')
+    u_section = request_data.get('user_section')
 
     query = '''
-        UPDATE user_course uc
-        JOIN users u ON uc.userId = u.userId
-        SET uc.role = %s
-        WHERE u.userId = %s AND uc.courseId = %s AND uc.sectionId = %s
+        INSERT INTO user_course(userId, role, courseId, sectionId)
+        VALUES (%s, %s, %s, %s)
     '''
     
-    cursor.execute(query, (new_role, id, course_id, section_id))
+    cursor.execute(query, (id, u_role, u_course, u_section))
+    
+    db.get_db().commit()
+    
+    return "User Course Added"
+ 
+ 
+# Remove user from a course
+@users.route('/<id>/delete/role', methods=['DELETE'])
+def delete_department(id):
+    request_data = request.get_json()
+    
+    cursor = db.get_db().cursor()
+    cursor.execute('use course_companion')
+
+    u_course = request_data.get('user_course')
+    u_section = request_data.get('user_section')
+    
+    query = '''
+        DELETE FROM user_course
+        WHERE userId = %s AND courseId = %s AND sectionId = %s
+    '''
+    
+    cursor.execute(query, (id, u_course, u_section)) 
 
     db.get_db().commit()
     
-    return "Role Updated"
+    return "User course deleted"
