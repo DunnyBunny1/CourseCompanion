@@ -1,19 +1,18 @@
-# All subsequent DB commands will be executed in the context of
-# course_companion
-DROP DATABASE IF EXISTS course_companion;
-#
+-- All subsequent DB commands will be executed in the context of
+-- course_companion
+
 CREATE DATABASE IF NOT EXISTS course_companion;
 USE course_companion;
 
 
-# Table for post tags (hash-tags) that can be applied to posts
+-- Table for post tags (hash-tags) that can be applied to posts
 CREATE TABLE IF NOT EXISTS tags
 (
     `tagId`   INTEGER AUTO_INCREMENT PRIMARY KEY,
     `tagName` VARCHAR(200) NOT NULL UNIQUE
 );
 
-# Table for departments that classes reside in
+-- Table for departments that classes reside in
 CREATE TABLE IF NOT EXISTS `department`
 (
     `departmentId`   INT AUTO_INCREMENT PRIMARY KEY,
@@ -21,9 +20,9 @@ CREATE TABLE IF NOT EXISTS `department`
     `departmentName` VARCHAR(100) NOT NULL UNIQUE
 );
 
-# Table for courses. Each course is uniquely identified by its course Id and
-# section Id . For example CS32000 (Prof Fontenot section) is a different
-# course from CS3200 (Prof Lebron section)
+-- Table for courses. Each course is uniquely identified by its course Id and
+-- section Id . For example CS32000 (Prof Fontenot section) is a different
+-- course from CS3200 (Prof Lebron section)
 CREATE TABLE IF NOT EXISTS `courses`
 (
     `sectionId`         INT          NOT NULL,
@@ -32,28 +31,28 @@ CREATE TABLE IF NOT EXISTS `courses`
     `courseName`        VARCHAR(100) NOT NULL,
     `departmentId`      INT          NOT NULL,
     PRIMARY KEY (`courseId`, `sectionId`),
-    # Create an index on course name so that we can look up courses by specific
-    # course names are faster
+    -- Create an index on course name so that we can look up courses by specific
+    -- course names are faster
     INDEX courseName_Idx (courseName),
     CONSTRAINT fk_course_department FOREIGN KEY (departmentId) REFERENCES department (departmentId)
 );
 
-# Table for our users of our app
+-- Table for our users of our app
 CREATE TABLE IF NOT EXISTS `users`
 (
     `userId`          INT AUTO_INCREMENT PRIMARY KEY,
     `firstName`       VARCHAR(100)       NOT NULL,
     `lastName`        VARCHAR(100),
     `bio`             TEXT,
-    # ALl users must have a bday, but it may not be known. For the
-    # cases where it is unknown, we will use null :)
+    -- All users must have a bday, but it may not be known. For the
+    -- cases where it is unknown, we will use null :)
     `birthdate`       DATE,
     `universityEmail` VARCHAR(75) UNIQUE NOT NULL,
     INDEX email_idx (universityEmail)
 );
 
-# Table for posts that users can create. Includes both announcements
-# and regular posts
+-- Table for posts that users can create. Includes both announcements
+-- and regular posts
 CREATE TABLE IF NOT EXISTS `posts`
 (
     `postId`         INTEGER AUTO_INCREMENT PRIMARY KEY,
@@ -65,19 +64,19 @@ CREATE TABLE IF NOT EXISTS `posts`
     `authorId`       INT         NOT NULL,
     `courseId`       INT         NOT NULL,
     `sectionId`      INT         NOT NULL,
-    # Create an index on author Id so that we can look up posts by specific
-    # authors faster
+    -- Create an index on author Id so that we can look up posts by specific
+    -- authors faster
     INDEX authorId_idx (authorId),
-    # Create an index on content so that we can look up posts by specific
-    # content are faster. Index only the first 255 chars of content to improve performance
+    -- Create an index on content so that we can look up posts by specific
+    -- content are faster. Index only the first 255 chars of content to improve performance
     INDEX content_Idx (content(255)),
     CONSTRAINT fk_posts_course FOREIGN KEY (courseId, sectionId) REFERENCES courses (courseId, sectionId),
     CONSTRAINT fk_posts_author FOREIGN KEY (authorId) REFERENCES users (userId)
 );
 
 
-# Table for messages between users (handles both direct and group messages via
-# the user_messages linkage table)
+-- Table for messages between users (handles both direct and group messages via
+-- the user_messages linkage table)
 CREATE TABLE IF NOT EXISTS `messages`
 (
     `messageId` INT AUTO_INCREMENT PRIMARY KEY,
@@ -85,14 +84,14 @@ CREATE TABLE IF NOT EXISTS `messages`
     `updatedAt` DATETIME,
     `content`   TEXT     NOT NULL,
     `authorId`  INT      NOT NULL,
-    # Create an index on content so that we can look up messages by specific
-    # content are faster. Index only the first 255 chars of content to improve performance
+    -- Create an index on content so that we can look up messages by specific
+    -- content are faster. Index only the first 255 chars of content to improve performance
     INDEX content_Idx (content(255)),
     CONSTRAINT fk_messages_author FOREIGN KEY (authorId) REFERENCES users (userId)
 );
 
 
-# Table for the comments applied to posts on our app
+-- Table for the comments applied to posts on our app
 CREATE TABLE IF NOT EXISTS `comments`
 (
     `commentId`       INT AUTO_INCREMENT PRIMARY KEY,
@@ -102,19 +101,19 @@ CREATE TABLE IF NOT EXISTS `comments`
     `authorId`        INT      NOT NULL,
     `parentCommentId` INT,
     `postId`          INT      NOT NULL,
-    # Create an index on content so that we can look up comments by specific
-    # content are faster. Index only the first 255 chars of content to improve performance
+    -- Create an index on content so that we can look up comments by specific
+    -- content are faster. Index only the first 255 chars of content to improve performance
     INDEX content_Idx (content(255)),
     CONSTRAINT fk_comments_author FOREIGN KEY (authorId) REFERENCES users (userId),
     CONSTRAINT fk_comments_post FOREIGN KEY (postId) REFERENCES posts (postId),
-    # Recusrive relationship - any comment that is a reply stores a pointer to the
-    # parent comment that it is a reply off of
+    -- Recusrive relationship - any comment that is a reply stores a pointer to the
+    -- parent comment that it is a reply off of
     CONSTRAINT fk_parentCommentId FOREIGN KEY (parentCommentId) REFERENCES comments (commentId)
 );
 
 
-# Table for linking users and messages. Support both direct messages (one recipient)
-# and group messages (multiple recipients)
+-- Table for linking users and messages. Support both direct messages (one recipient)
+-- and group messages (multiple recipients)
 CREATE TABLE IF NOT EXISTS `user_messages`
 (
     messageId   INT NOT NULL,
@@ -124,7 +123,7 @@ CREATE TABLE IF NOT EXISTS `user_messages`
     CONSTRAINT fk_userMsgRecipient_message FOREIGN KEY (recipientId) REFERENCES users (userId)
 );
 
-# Linkage table connecting posts and tagss
+-- Linkage table connecting posts and tagss
 CREATE TABLE IF NOT EXISTS `post_tags`
 (
     `postId` INT NOT NULL,
@@ -134,7 +133,7 @@ CREATE TABLE IF NOT EXISTS `post_tags`
     CONSTRAINT fk_postTags_post FOREIGN KEY (postId) REFERENCES posts (postId)
 );
 
-# Linkage table connecting users and courses
+-- Linkage table connecting users and courses
 CREATE TABLE IF NOT EXISTS `user_course`
 (
     `userId`    INT                                        NOT NULL,
@@ -142,13 +141,13 @@ CREATE TABLE IF NOT EXISTS `user_course`
     `isActive`  BOOLEAN                                    NOT NULL,
     `courseId`  INT                                        NOT NULL,
     `sectionId` INT                                        NOT NULL,
-    # Each user will have a unique role in each course-section they are a member of
+    -- Each user will have a unique role in each course-section they are a member of
     PRIMARY KEY (`userId`, `courseId`, sectionId),
     CONSTRAINT fk_userCourse_user FOREIGN KEY (userId) REFERENCES users (userId),
     CONSTRAINT fk_userCourse_course FOREIGN KEY (`courseId`, `sectionId`) REFERENCES courses (`courseId`, `sectionId`)
 );
 
-# Linkage table for posts and their viewing groups (a multi-valued attribute)
+-- Linkage table for posts and their viewing groups (a multi-valued attribute)
 CREATE TABLE IF NOT EXISTS `posts_viewingGroup`
 (
     `postId`       INT                                        NOT NULL,
@@ -157,7 +156,7 @@ CREATE TABLE IF NOT EXISTS `posts_viewingGroup`
     CONSTRAINT fk_postsViewingGroup_posts FOREIGN KEY (postId) REFERENCES posts (postId)
 );
 
-# Insert sample tags into our DB
+-- Insert sample tags into our DB
 INSERT INTO tags (tagName)
 VALUES ('homework'),
        ('exam'),
@@ -167,7 +166,7 @@ VALUES ('homework'),
        ('discussion'),
        ('resource'),
        ('syllabus');
-# Insert sample departments into our DB: Math, CS, Spanish, Sports
+-- Insert sample departments into our DB: Math, CS, Spanish, Sports
 INSERT INTO department (departmentName, description)
 VALUES ('Mathematics', 'Department focused on mathematical theory and applications'),
        ('Computer Science', 'Department focused on computation, programming, and algorithmic thinking'),
