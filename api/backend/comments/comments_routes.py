@@ -9,7 +9,6 @@ from flask import make_response
 from flask import current_app
 import json
 from backend.db_connection import db
-from backend.ml_models.model01 import predict
 
 comments = Blueprint('comments', __name__)
 

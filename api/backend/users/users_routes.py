@@ -4,11 +4,29 @@ from flask import jsonify
 from flask import make_response
 from flask import current_app
 from backend.db_connection import db
-from backend.ml_models.model01 import predict
 
 
 # Creates a new blueprint object
 users = Blueprint('users', __name__)
+
+
+# Gets all users in the data base
+@users.route('/all', methods=['GET'])
+def all_user():
+    cursor = db.get_db().cursor()
+
+    query = '''
+        SELECT userId, firstName, lastName, bio, birthdate, universityEmail
+        FROM users
+    '''
+    
+    cursor.execute(query)
+    
+    return_data = cursor.fetchall()
+    
+    the_response = make_response(jsonify(return_data))
+    the_response.status_code = 200
+    return the_response
 
 
 # Gets a specific user

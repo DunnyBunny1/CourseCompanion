@@ -65,7 +65,7 @@ if st.button("Course Feed Page",
     # landing page for this particular user type
     
     logger.info("Visiting the course feed page...")
-    st.switch_page('pages/00_course_feed_page.py')
+    st.switch_page('pages/course_feed_page.py')
 
 if st.button("Messages Page", 
             type = 'primary', 
