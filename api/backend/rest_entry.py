@@ -4,15 +4,17 @@ from dotenv import load_dotenv
 from flask import Flask
 
 from backend.db_connection import db
+
 from backend.customers.customer_routes import customers
 from backend.products.products_routes import products
+from backend.simple.simple_routes import simple_routes
 
 from backend.users.users_routes import users
 from backend.departments.departments_routes import departments
-
-from backend.simple.simple_routes import simple_routes
+from backend.posts.post_routes import posts
 from backend.comments.comments_routes import comments
 from backend.tags.tag_routes import tags
+
 
 
 def create_app():
@@ -45,10 +47,12 @@ def create_app():
     app.register_blueprint(simple_routes)
     app.register_blueprint(customers,   url_prefix='/c')
     app.register_blueprint(products,    url_prefix='/p')
-    app.register_blueprint(comments,    url_prefix='/cmt')
 
+    app.register_blueprint(posts,       url_prefix='/po')
+    app.register_blueprint(comments,    url_prefix='/cmt')
     app.register_blueprint(departments, url_prefix='/dept')
     app.register_blueprint(tags, url_prefix='/t')
+    app.register_blueprint(users,       url_prefix='/u')
 
     # Don't forget to return the app object
     return app

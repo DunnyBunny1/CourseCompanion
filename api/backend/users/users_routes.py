@@ -6,14 +6,34 @@ from flask import current_app
 from backend.db_connection import db
 from backend.ml_models.model01 import predict
 
+
 # Creates a new blueprint object
 users = Blueprint('users', __name__)
+
+
+# Gets all users in the data base
+@users.route('/all', methods=['GET'])
+def all_user():
+    cursor = db.get_db().cursor()
+
+    query = '''
+        SELECT userId, firstName, lastName, bio, birthdate, universityEmail
+        FROM users
+    '''
+    
+    cursor.execute(query)
+    
+    return_data = cursor.fetchall()
+    
+    the_response = make_response(jsonify(return_data))
+    the_response.status_code = 200
+    return the_response
+
 
 # Gets a specific user
 @users.route('/<id>', methods=['GET'])
 def search_user(id):
     cursor = db.get_db().cursor()
-    cursor.execute('use course_companion')
 
     query = '''
         SELECT userId, firstName, lastName, bio, birthdate, universityEmail
@@ -34,7 +54,6 @@ def search_user(id):
 @users.route('/<id>/role', methods=['GET'])
 def search_user_role(id):
     cursor = db.get_db().cursor()
-    cursor.execute('use course_companion')
 
     query = '''
         SELECT u.userId, firstName, lastName, uc.role, uc.courseId, uc.sectionId
@@ -52,28 +71,52 @@ def search_user_role(id):
     return the_response
 
 
-# Updates a users role
-@users.route('/update/<id>/role', methods=['PUT'])
-def update_user_role(id):
-
+# Add user with a certain role
+@users.route('/<id>/create/role', methods=['POST'])
+def create_role(id):
     request_data = request.get_json()
-
+    
     cursor = db.get_db().cursor()
-    cursor.execute('use course_companion')
 
-    new_role = request_data.get('new_role')
-    course_id = request_data.get('course_id')
-    section_id = request_data.get('section_id')
+    u_role = request_data.get('user_role')
+    u_course = request_data.get('user_course')
+    u_section = request_data.get('user_section')
 
     query = '''
-        UPDATE user_course uc
-        JOIN users u ON uc.userId = u.userId
-        SET uc.role = %s
-        WHERE u.userId = %s AND uc.courseId = %s AND uc.sectionId = %s
+        INSERT INTO user_course(userId, role, courseId, sectionId)
+        VALUES (%s, %s, %s, %s)
     '''
     
-    cursor.execute(query, (new_role, id, course_id, section_id))
+    cursor.execute(query, (id, u_role, u_course, u_section))
+    
+    db.get_db().commit()
+
+    the_response = make_response(jsonify({"message": "User added successfully"}))
+    the_response.status_code = 200
+    the_response.mimetype = 'application/json'
+    return the_response
+ 
+ 
+# Remove user from a course
+@users.route('/<id>/delete/role', methods=['DELETE'])
+def delete_department(id):
+    request_data = request.get_json()
+    
+    cursor = db.get_db().cursor()
+
+    u_course = request_data.get('user_course')
+    u_section = request_data.get('user_section')
+    
+    query = '''
+        DELETE FROM user_course
+        WHERE userId = %s AND courseId = %s AND sectionId = %s
+    '''
+    
+    cursor.execute(query, (id, u_course, u_section)) 
 
     db.get_db().commit()
-    
-    return "Role Updated"
+
+    the_response = make_response(jsonify({"message": "User in a course deleted successfully"}))
+    the_response.status_code = 200
+    the_response.mimetype = 'application/json'
+    return the_response
