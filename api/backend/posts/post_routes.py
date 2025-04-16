@@ -79,18 +79,10 @@ def get_all_posts():
     cursor.execute(query, values)
     theData = cursor.fetchall()
 
-    response = make_response(jsonify(theData))
-    response.status_code = 200
-    response.mimetype = 'application/json'
-    return response
-
-
-
-
-
-
-
-
+    the_response = make_response(jsonify(theData))
+    the_response.status_code = 200
+    the_response.mimetype = 'application/json'
+    return the_response
 
 
 
@@ -109,6 +101,7 @@ def get_post(post_id):
 
     cursor.execute(query)
     theData = cursor.fetchall()
+    
     the_response = make_response(jsonify(theData))
     the_response.status_code = 200
     the_response.mimetype = 'application/json'
@@ -146,7 +139,11 @@ def update_post(post_id):
     cursor = db.get_db().cursor()
     r = cursor.execute(query, data)
     db.get_db().commit()
-    return f"post {post_id} updated!"
+    
+    the_response = make_response(jsonify({"message": f"Post {post_id} updated successfully"}))
+    the_response.status_code = 200
+    the_response.mimetype = 'application/json'
+    return the_response
 
 
 
@@ -162,7 +159,10 @@ def delete_post(post_id):
     cursor.execute(delete_query)
     db.get_db().commit()
 
-    return f"post {post_id} deleted!"
+    the_response = make_response(jsonify({"message": f"Post {post_id} deleted successfully"}))
+    the_response.status_code = 200
+    the_response.mimetype = 'application/json'
+    return the_response
 
 
 
@@ -195,6 +195,7 @@ def create_post():
     cursor = db.get_db().cursor()
     cursor.execute(query)
     db.get_db().commit()
-    response = make_response(f"Successfully added product {post_id}")
-    response.status_code = 200
-    return response
+    the_response = make_response(jsonify({"message": f"Post {post_id} created successfully"}))
+    the_response.status_code = 200
+    the_response.mimetype = 'application/json'
+    return the_response
