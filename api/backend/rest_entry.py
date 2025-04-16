@@ -16,7 +16,6 @@ from backend.comments.comments_routes import comments
 from backend.tags.tag_routes import tags
 
 
-
 def create_app():
     app = Flask(__name__)
 
@@ -53,6 +52,7 @@ def create_app():
     app.register_blueprint(departments, url_prefix='/dept')
     app.register_blueprint(tags, url_prefix='/t')
     app.register_blueprint(users,       url_prefix='/u')
+    app.register_blueprint(tags, url_prefix='/t')
 
     # Don't forget to return the app object
     return app
