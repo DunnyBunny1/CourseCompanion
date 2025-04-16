@@ -58,8 +58,8 @@ CREATE TABLE IF NOT EXISTS `posts`
     `postId`         INTEGER AUTO_INCREMENT PRIMARY KEY,
     `title`          VARCHAR(75) NOT NULL,
     `content`        TEXT        NOT NULL,
-    `createdAt`      DATETIME    NOT NULL,
-    `updatedAt`      DATETIME,
+    `createdAt`      DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt`      DATETIME    ON UPDATE CURRENT_TIMESTAMP,
     `isAnnouncement` BOOLEAN     NOT NULL,
     `authorId`       INT         NOT NULL,
     `courseId`       INT         NOT NULL,
@@ -80,8 +80,8 @@ CREATE TABLE IF NOT EXISTS `posts`
 CREATE TABLE IF NOT EXISTS `messages`
 (
     `messageId` INT AUTO_INCREMENT PRIMARY KEY,
-    `createdAt` DATETIME NOT NULL,
-    `updatedAt` DATETIME,
+    `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt` DATETIME ON UPDATE CURRENT_TIMESTAMP,
     `content`   TEXT     NOT NULL,
     `authorId`  INT      NOT NULL,
     -- Create an index on content so that we can look up messages by specific
@@ -96,8 +96,8 @@ CREATE TABLE IF NOT EXISTS `comments`
 (
     `commentId`       INT AUTO_INCREMENT PRIMARY KEY,
     `content`         TEXT     NOT NULL,
-    `createdAt`       DATETIME NOT NULL,
-    `updatedAt`       DATETIME,
+    `createdAt`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt`       DATETIME ON UPDATE CURRENT_TIMESTAMP,
     `authorId`        INT      NOT NULL,
     `parentCommentId` INT,
     `postId`          INT      NOT NULL,
