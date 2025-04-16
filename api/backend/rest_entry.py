@@ -1,3 +1,6 @@
+import os
+from dotenv import load_dotenv
+
 from flask import Flask
 
 from backend.db_connection import db
@@ -9,8 +12,8 @@ from backend.departments.departments_routes import departments
 
 from backend.simple.simple_routes import simple_routes
 from backend.comments.comments_routes import comments
-import os
-from dotenv import load_dotenv
+from backend.tags.tag_routes import tags
+
 
 def create_app():
     app = Flask(__name__)
@@ -45,7 +48,7 @@ def create_app():
     app.register_blueprint(comments,    url_prefix='/cmt')
 
     app.register_blueprint(departments, url_prefix='/dept')
-    app.register_blueprint(departments, url_prefix='/u')
+    app.register_blueprint(tags, url_prefix='/t')
 
     # Don't forget to return the app object
     return app
