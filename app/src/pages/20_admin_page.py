@@ -52,7 +52,7 @@ with col1:
 
 with col2:
     # Enrollment Management
-    st.markdown("### Enrollment Role Updating")
+    st.markdown("### User Role Editor")
     st.markdown("Control which users are enrolled in each course.")
     if st.button("Manage Enrollments", use_container_width=True, type="primary"):
         logger.info("Navigating to Enrollment management")
@@ -65,4 +65,3 @@ with col2:
 
 # Footer
 st.markdown("---")
-st.markdown("© 2025 Course Companion - Administrative Interface")

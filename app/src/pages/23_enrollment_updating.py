@@ -1,5 +1,5 @@
 ##################################################
-# Enrollment Role Updating Page
+# User Role Editor
 ##################################################
 
 # Set up basic logging infrastructure
@@ -11,12 +11,13 @@ logger = logging.getLogger(__name__)
 import streamlit as st
 from modules.nav import SideBarLinks
 import pandas as pd
-import requests
 from datetime import datetime
+import requests
+import json
 
 # Configure page
 st.set_page_config(
-    page_title="Course Companion - Enrollment Role Updating",
+    page_title="Course Companion - User Role Editor",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -24,238 +25,280 @@ st.set_page_config(
 
 SideBarLinks()
 
-# Helper functions for API calls
+# API functions with fallback mechanism
 def get_all_users():
     try:
         # Try using api container name for Docker or localhost for local development
         try:
-            response = requests.get('http://api:4000/u/all').json()
-            return response
+            response = requests.get('http://api:4000/u/all')
+            return response.json()
         except:
-            response = requests.get('http://localhost:4000/u/all').json()
-            return response
+            response = requests.get('http://localhost:4000/u/all')
+            return response.json()
     except Exception as e:
         logger.error(f"API connection error: {str(e)}")
-        st.error("Could not connect to the users API. Using sample data instead.")
+        st.error("Could not connect to the API. Using sample data instead.")
         # Return sample data as fallback
         return [
-            {
-                "bio": "Computer Science major with a passion for AI and machine learning.",
-                "birthdate": "Mon, 15 May 2000 00:00:00 GMT",
-                "firstName": "Bob",
-                "lastName": "Smith",
-                "universityEmail": "bsmith@university.edu",
-                "userId": 1
-            },
-            {
-                "bio": "Mathematics major interested in cryptography and number theory.",
-                "birthdate": "Fri, 22 Oct 1999 00:00:00 GMT",
-                "firstName": "Alice",
-                "lastName": "Johnson",
-                "universityEmail": "ajohnson@university.edu",
-                "userId": 2
-            },
-            {
-                "bio": "Physical Education professor specializing in basketball techniques and team strategy.",
-                "birthdate": "Sun, 30 Dec 1984 00:00:00 GMT",
-                "firstName": "Lebron",
-                "lastName": "James",
-                "universityEmail": "ljames@university.edu",
-                "userId": 3
-            }
+            {"userId": 1, "firstName": "John", "lastName": "Doe", "bio": "Computer Science student", "birthdate": "1998-05-15", "universityEmail": "john.doe@university.edu"},
+            {"userId": 2, "firstName": "Jane", "lastName": "Smith", "bio": "Mathematics major", "birthdate": "1999-08-22", "universityEmail": "jane.smith@university.edu"},
+            {"userId": 3, "firstName": "Robert", "lastName": "Johnson", "bio": "Physics professor", "birthdate": "1975-03-10", "universityEmail": "robert.johnson@university.edu"},
+            {"userId": 4, "firstName": "Emily", "lastName": "Davis", "bio": "Department administrator", "birthdate": "1985-11-28", "universityEmail": "emily.davis@university.edu"},
+            {"userId": 5, "firstName": "Michael", "lastName": "Wilson", "bio": "Engineering student", "birthdate": "2000-02-14", "universityEmail": "michael.wilson@university.edu"}
         ]
 
-def get_all_system_roles():
+def get_user(user_id):
     try:
         # Try using api container name for Docker or localhost for local development
         try:
-            response = requests.get('http://api:4000/system_roles/all').json()
-            return response
+            response = requests.get(f'http://api:4000/u/{user_id}')
+            result = response.json()
+            return result[0] if result else None
         except:
-            response = requests.get('http://localhost:4000/system_roles/all').json()
-            return response
+            response = requests.get(f'http://localhost:4000/u/{user_id}')
+            result = response.json()
+            return result[0] if result else None
     except Exception as e:
         logger.error(f"API connection error: {str(e)}")
-        logger.info("Using session state or sample data for system roles.")
-        # Use session state if available, otherwise use sample data
-        if 'user_roles' in st.session_state:
-            return st.session_state.user_roles
+        st.error("Could not connect to the API. Using sample data instead.")
+        # Return sample data as fallback for the selected user
+        sample_users = {
+            1: {"userId": 1, "firstName": "John", "lastName": "Doe", "bio": "Computer Science student", "birthdate": "1998-05-15", "universityEmail": "john.doe@university.edu"},
+            2: {"userId": 2, "firstName": "Jane", "lastName": "Smith", "bio": "Mathematics major", "birthdate": "1999-08-22", "universityEmail": "jane.smith@university.edu"},
+            3: {"userId": 3, "firstName": "Robert", "lastName": "Johnson", "bio": "Physics professor", "birthdate": "1975-03-10", "universityEmail": "robert.johnson@university.edu"},
+            4: {"userId": 4, "firstName": "Emily", "lastName": "Davis", "bio": "Department administrator", "birthdate": "1985-11-28", "universityEmail": "emily.davis@university.edu"},
+            5: {"userId": 5, "firstName": "Michael", "lastName": "Wilson", "bio": "Engineering student", "birthdate": "2000-02-14", "universityEmail": "michael.wilson@university.edu"}
+        }
+        return sample_users.get(user_id)
+
+def get_user_roles(user_id):
+    try:
+        # Try using api container name for Docker or localhost for local development
+        try:
+            response = requests.get(f'http://api:4000/u/{user_id}/role')
+            return response.json()
+        except:
+            response = requests.get(f'http://localhost:4000/u/{user_id}/role')
+            return response.json()
+    except Exception as e:
+        logger.error(f"API connection error: {str(e)}")
+        st.error("Could not connect to the API. Using sample data instead.")
+        # Return sample data as fallback
+        sample_roles = {
+            1: [
+                {"userId": 1, "firstName": "John", "lastName": "Doe", "role": "student", "courseId": 1, "sectionId": 1},
+                {"userId": 1, "firstName": "John", "lastName": "Doe", "role": "student", "courseId": 3, "sectionId": 1}
+            ],
+            2: [
+                {"userId": 2, "firstName": "Jane", "lastName": "Smith", "role": "student", "courseId": 1, "sectionId": 1}
+            ],
+            3: [
+                {"userId": 3, "firstName": "Robert", "lastName": "Johnson", "role": "teacher", "courseId": 2, "sectionId": 1}
+            ],
+            4: [],
+            5: [
+                {"userId": 5, "firstName": "Michael", "lastName": "Wilson", "role": "student", "courseId": 5, "sectionId": 1}
+            ]
+        }
+        return sample_roles.get(user_id, [])
+
+def add_user_role(user_id, role, course_id, section_id):
+    try:
+        data = {
+            "user_role": role,
+            "user_course": course_id,
+            "user_section": section_id
+        }
+        # Try using api container name for Docker or localhost for local development
+        try:
+            response = requests.post(f'http://api:4000/u/{user_id}/create/role', json=data)
+            return response.status_code == 200
+        except:
+            response = requests.post(f'http://localhost:4000/u/{user_id}/create/role', json=data)
+            return response.status_code == 200
+    except Exception as e:
+        logger.error(f"API connection error: {str(e)}")
+        st.error("Could not connect to the API. Operation not completed.")
+        return False
+
+def remove_user_role(user_id, course_id, section_id):
+    try:
+        data = {
+            "user_course": course_id,
+            "user_section": section_id
+        }
+        # Try using api container name for Docker or localhost for local development
+        try:
+            response = requests.delete(f'http://api:4000/u/{user_id}/delete/role', json=data)
+            return response.status_code == 200
+        except:
+            response = requests.delete(f'http://localhost:4000/u/{user_id}/delete/role', json=data)
+            return response.status_code == 200
+    except Exception as e:
+        logger.error(f"API connection error: {str(e)}")
+        st.error("Could not connect to the API. Operation not completed.")
+        return False
+
+def get_courses():
+    try:
+        # Try using api container name for Docker or localhost for local development
+        try:
+            response = requests.get('http://localhost:4000/crs/all')
+            return response.json()
+        except:
+            response = requests.get('')
+            return response.json()
+    except Exception as e:
+        logger.error(f"API connection error: {str(e)}")
+        st.error("Could not connect to the API for courses. Using sample data instead.")
+        # Return sample data as fallback
         return [
-            {"userId": 1, "role": "student"},
-            {"userId": 2, "role": "student"},
-            {"userId": 3, "role": "teacher", "prefix": "Prof."}
+            {"courseId": 1, "courseName": "Introduction to Programming"},
+            {"courseId": 2, "courseName": "Data Structures"},
+            {"courseId": 3, "courseName": "Calculus I"},
+            {"courseId": 4, "courseName": "Physics I"},
+            {"courseId": 5, "courseName": "Engineering Fundamentals"}
         ]
 
-def get_user_system_role(user_id):
-    try:
-        # Try using api container name for Docker or localhost for local development
-        try:
-            response = requests.get(f'http://api:4000/system_roles/{user_id}').json()
-            if response and len(response) > 0:
-                return response[0]
-            return None
-        except:
-            response = requests.get(f'http://localhost:4000/system_roles/{user_id}').json()
-            if response and len(response) > 0:
-                return response[0]
-            return None
-    except Exception as e:
-        logger.error(f"API connection error: {str(e)}")
-        # Try to get from session state if available
-        if 'user_roles' in st.session_state:
-            for role in st.session_state.user_roles:
-                if role["userId"] == user_id:
-                    return role
-        return None
-
-def update_user_system_role(user_id, role_data):
-    try:
-        # Try using api container name for Docker or localhost for local development
-        try:
-            response = requests.post(
-                f'http://api:4000/system_roles/{user_id}/update', 
-                json=role_data,
-                headers={"Content-Type": "application/json"}
-            ).json()
-        except:
-            response = requests.post(
-                f'http://localhost:4000/system_roles/{user_id}/update', 
-                json=role_data,
-                headers={"Content-Type": "application/json"}
-            ).json()
-        
-        return True, response.get("message", "User system role updated successfully")
-    except Exception as e:
-        logger.error(f"API connection error: {str(e)}")
-        # Update in session state if API fails
-        if 'user_roles' in st.session_state:
-            for i, role in enumerate(st.session_state.user_roles):
-                if role["userId"] == user_id:
-                    st.session_state.user_roles[i] = {**role_data, "userId": user_id}
-                    break
-            else:
-                st.session_state.user_roles.append({**role_data, "userId": user_id})
-        return False, f"API connection error: {str(e)}, but updated in local session."
-
-# Helper functions for user display
-def get_users_with_roles():
-    users = get_all_users()
-    system_roles = get_all_system_roles()
-    
-    # Create a dictionary mapping userId to role for faster lookup
-    role_map = {}
-    for role in system_roles:
-        role_map[role["userId"]] = role
-    
-    users_with_roles = []
-    for user in users:
-        user_id = user["userId"]
-        role_info = role_map.get(user_id, {})
-        role = role_info.get("role", "unknown")
-        prefix = role_info.get("prefix", "")
-        
-        users_with_roles.append({
-            "userId": user_id,
-            "firstName": user["firstName"],
-            "lastName": user["lastName"],
-            "email": user["universityEmail"],
-            "role": role,
-            "prefix": prefix,
-            "displayName": f"{prefix + ' ' if prefix else ''}{user['firstName']} {user['lastName']}"
-        })
-    
-    return users_with_roles
-
+# Helper functions
 def get_course_name(course_id):
-    courses = [
-        {"courseId": 1, "courseName": "Introduction to Programming"},
-        {"courseId": 2, "courseName": "Data Structures"},
-        {"courseId": 3, "courseName": "Calculus I"},
-        {"courseId": 4, "courseName": "Physics I"},
-        {"courseId": 5, "courseName": "Engineering Fundamentals"}
-    ]
+    courses = get_courses()
     for course in courses:
         if course["courseId"] == course_id:
             return course["courseName"]
     return f"Course {course_id}"
 
-# Initialize session state for fallback
-if 'user_roles' not in st.session_state:
-    st.session_state.user_roles = [
-        {"userId": 1, "role": "student"},
-        {"userId": 2, "role": "student"},
-        {"userId": 3, "role": "teacher", "prefix": "Prof."}
-    ]
-
 # Page header
-st.title("Enrollment Role Updating")
+st.title("User Role Editor")
 st.markdown("### Course Companion Admin System")
 st.markdown("---")
 
-if st.button("\u2190 Back to Admin Home"):
+if st.button("← Back to Admin Home"):
     st.switch_page("pages/20_admin_page.py")
 
-# Get users with their roles
-users_with_roles = get_users_with_roles()
+# Main content
+st.write("This tool allows administrators to manage user roles in courses.")
 
-col1, col2 = st.columns([1, 2])
+# Create a three-column layout
+col1, col2, col3 = st.columns([1, 2, 1])
 
 with col1:
     st.subheader("Select User")
-    role_filter = st.selectbox("Filter by Role", options=["All", "student", "TA", "teacher", "admin"])
-    filtered_users = [user for user in users_with_roles if user["role"] == role_filter] if role_filter != "All" else users_with_roles
-    if filtered_users:
-        user_options = {user["displayName"]: user["userId"] for user in filtered_users}
-        selected_user_display = st.selectbox("Select User", options=list(user_options.keys()))
+    
+    # Get all users from API
+    all_users = get_all_users()
+    
+    # Create a dictionary of display names to user IDs
+    user_options = {f"{user['firstName']} {user['lastName']}": user['userId'] for user in all_users}
+    
+    if user_options:
+        selected_user_display = st.selectbox("User:", options=list(user_options.keys()))
         selected_user_id = user_options[selected_user_display]
+        
+        # Get user details
+        user_info = get_user(selected_user_id)
+        
+        if user_info:
+            st.write(f"**Email:** {user_info['universityEmail']}")
+            if 'bio' in user_info and user_info['bio']:
+                st.write(f"**Bio:** {user_info['bio']}")
     else:
-        st.info("No users found with the selected role filter.")
+        st.info("No users found in the database.")
         selected_user_id = None
 
 with col2:
-    if selected_user_id is not None:
-        user_info = next((user for user in users_with_roles if user["userId"] == selected_user_id), None)
-        if user_info:
-            st.subheader(f"Update Roles for {user_info['displayName']}")
-            st.markdown(f"**Email:** {user_info['email']}")
-            st.markdown(f"**Current System Role:** {user_info['role']}")
-
-            with st.expander("Update System Role", expanded=True):
-                with st.form("update_system_role_form"):
-                    new_role = st.selectbox("System Role", options=["student", "TA", "teacher", "admin"], index=["student", "TA", "teacher", "admin"].index(user_info["role"]) if user_info["role"] in ["student", "TA", "teacher", "admin"] else 0)
-                    prefix = ""
-                    if new_role == "teacher":
-                        prefix_options = ["", "Prof.", "Dr.", "Instructor", "Mr.", "Ms.", "Mrs."]
-                        current_prefix = user_info["prefix"] if "prefix" in user_info and user_info["prefix"] else ""
-                        prefix_index = prefix_options.index(current_prefix) if current_prefix in prefix_options else 0
-                        prefix = st.selectbox("Title/Prefix", options=prefix_options, index=prefix_index)
+    if 'selected_user_id' in locals() and selected_user_id is not None:
+        st.subheader("Current Course Roles")
+        
+        # Get user's current roles
+        user_roles = get_user_roles(selected_user_id)
+        
+        if user_roles:
+            # Create a table of current roles
+            roles_data = []
+            for role in user_roles:
+                course_name = get_course_name(role["courseId"])
+                roles_data.append({
+                    "Course": course_name,
+                    "Role": role["role"],
+                    "Section": role["sectionId"],
+                    "courseId": role["courseId"],  # Hidden field for internal use
+                })
+            
+            # Display the roles in a dataframe
+            if roles_data:
+                roles_df = pd.DataFrame(roles_data)
+                # Don't show the courseId column
+                st.dataframe(roles_df[["Course", "Role", "Section"]], use_container_width=True)
+                
+                # Add a way to select a role to remove
+                st.subheader("Remove Role")
+                
+                # Create options for each role
+                role_options = {f"{r['Course']} (Section {r['Section']})": (r["courseId"], r["Section"]) for r in roles_data}
+                
+                if role_options:
+                    selected_role_display = st.selectbox("Select role to remove:", options=list(role_options.keys()))
+                    selected_course_id, selected_section_id = role_options[selected_role_display]
                     
-                    update_button = st.form_submit_button("Update System Role")
-                    if update_button:
-                        # Prepare role data for API
-                        role_data = {"role": new_role}
-                        if new_role == "teacher" and prefix:
-                            role_data["prefix"] = prefix
-                        
-                        # Call API to update role
-                        success, message = update_user_system_role(selected_user_id, role_data)
-                        
+                    if st.button("Remove Selected Role"):
+                        with st.spinner("Removing role..."):
+                            success = remove_user_role(selected_user_id, selected_course_id, selected_section_id)
+                            if success:
+                                st.success(f"Role removed successfully!")
+                                st.rerun()
+                            else:
+                                st.error("Failed to remove role. Please try again.")
+            else:
+                st.info("No roles found for this user.")
+        else:
+            st.info("This user does not have any course roles assigned.")
+
+with col3:
+    if 'selected_user_id' in locals() and selected_user_id is not None:
+        st.subheader("Add New Role")
+        
+        # Get all courses
+        all_courses = get_courses()
+        
+        # Get user's current roles
+        user_roles = get_user_roles(selected_user_id)
+        
+        # Extract course IDs that the user is already enrolled in
+        enrolled_course_ids = set()
+        for role in user_roles:
+            enrolled_course_ids.add(role["courseId"])
+        
+        # Filter out courses the user is already enrolled in
+        available_courses = [course for course in all_courses if course["courseId"] not in enrolled_course_ids]
+        
+        if available_courses:
+            with st.form("add_role_form"):
+                # Course selection
+                course_options = {course["courseName"]: course["courseId"] for course in available_courses}
+                selected_course = st.selectbox("Course:", options=list(course_options.keys()))
+                course_id = course_options[selected_course]
+                
+                # Role selection
+                role_options = ["student", "TA", "teacher"]
+                role = st.selectbox("Role:", options=role_options)
+                
+                # Section selection
+                section = st.number_input("Section:", min_value=1, value=1)
+                
+                # Submit button
+                submitted = st.form_submit_button("Add Role")
+                
+                if submitted:
+                    with st.spinner("Adding role..."):
+                        success = add_user_role(selected_user_id, role, course_id, section)
                         if success:
-                            st.success(f"System role updated successfully!")
+                            st.success("Role added successfully!")
+                            st.rerun()
                         else:
-                            st.warning(message)
-                        
-                        logger.info(f"Updated system role for user {selected_user_id} to {new_role}")
-                        st.rerun()
-
-# Display all users and their roles
-st.markdown("---")
-st.subheader("All Users and Roles")
-if users_with_roles:
-    df = pd.DataFrame(users_with_roles)
-    df = df.rename(columns={"firstName": "First Name", "lastName": "Last Name", "email": "Email", "role": "System Role", "prefix": "Prefix", "displayName": "Display Name"})
-    st.dataframe(df[["userId", "Display Name", "Email", "System Role", "Prefix"]], use_container_width=True)
-else:
-    st.info("No users found.")
+                            st.error("Failed to add role. Please try again.")
+        else:
+            st.info("This user is already enrolled in all available courses.")
 
 st.markdown("---")
+st.caption("Last updated: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))

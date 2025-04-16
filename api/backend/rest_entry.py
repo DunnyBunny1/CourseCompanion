@@ -10,6 +10,7 @@ from backend.users.users_routes import users
 from backend.departments.departments_routes import departments
 from backend.posts.post_routes import posts
 from backend.comments.comments_routes import comments
+from backend.courses.courses_routes import courses
 
 import os
 from dotenv import load_dotenv
@@ -49,6 +50,7 @@ def create_app():
     app.register_blueprint(comments,    url_prefix='/cmt')
     app.register_blueprint(departments, url_prefix='/dept')
     app.register_blueprint(users,       url_prefix='/u')
+    app.register_blueprint(courses,     url_prefix='/crs')  
 
     # Don't forget to return the app object
     return app
