@@ -1,7 +1,3 @@
-########################################################
-# Sample customers blueprint of endpoints
-# Remove this file if you are not using it in your project
-########################################################
 from flask import Blueprint
 from flask import request
 from flask import jsonify
