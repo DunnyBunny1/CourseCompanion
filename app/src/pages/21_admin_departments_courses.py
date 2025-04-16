@@ -14,6 +14,12 @@ import pandas as pd
 import requests
 import json
 from datetime import datetime
+import logging
+
+# Set up basic logging infrastructure
+import logging
+logging.basicConfig(format='%(filename)s:%(lineno)s:%(levelname)s -- %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Configure page
 st.set_page_config(
@@ -164,12 +170,33 @@ def update_course(course_data):
         logger.error(f"API connection error: {str(e)}")
         return False, f"API connection error: {str(e)}"
 
-def delete_course(course_id):
+def delete_course(course_id, section_id):
     try:
-        # Try using api container name for Docker or localhost for local development
-        response = requests.delete(f'http://api:4000/crs/courses{course_id}').json()
+        logger.info(f"Attempting to delete course {course_id}, section {section_id}")
+        response = requests.delete(f'http://api:4000/crs/courses/{course_id}')
         
-        return True, response.get("message", "Course deleted successfully")
+        # First check if we got a successful response
+        if response.ok:
+            # Try to parse JSON if present
+            try:
+                result = response.json()
+                return True, result.get("message", "Course deleted successfully")
+            except json.JSONDecodeError:
+                # No JSON but successful status
+                return True, "Course deleted successfully"
+        else:
+            # Handle error responses
+            try:
+                # Try to parse error as JSON
+                error_data = response.json()
+                return False, error_data.get("message", f"Error: {response.status_code}")
+            except json.JSONDecodeError:
+                # Not JSON, check if it's the specific foreign key error
+                if response.status_code == 500 and "foreign key constraint" in response.text:
+                    return False, "Cannot delete this course because students are enrolled. Please remove all student enrollments first."
+                else:
+                    # Generic error
+                    return False, f"Error: {response.status_code} - {response.text[:100] if response.text else 'Unknown error'}"
     except Exception as e:
         logger.error(f"API connection error: {str(e)}")
         return False, f"API connection error: {str(e)}"
@@ -331,54 +358,53 @@ with tab2:
     
     # --- Add New Course ---
     with st.expander("Add New Course"):
-      with st.form("add_course_form"):
-        # Department selector
-        dept_map = {d["departmentName"]: d["departmentId"] for d in departments_data}
-        selected_dept_name = st.selectbox("Department", list(dept_map.keys()))
-        sel_dept_id = dept_map[selected_dept_name]
+        with st.form("add_course_form"):
+            # Department selector
+            dept_map = {d["departmentName"]: d["departmentId"] for d in departments_data}
+            selected_dept_name = st.selectbox("Department", list(dept_map.keys()))
+            sel_dept_id = dept_map[selected_dept_name]
 
-        # Compute next course ID as default
-        dept_courses = [c for c in courses_data if c["departmentId"] == sel_dept_id]
-        suggested_course_id = (
-            max(c["courseId"] for c in dept_courses) + 1
-            if dept_courses
-            else sel_dept_id * 1000 + 1
-        )
+            # Compute next course ID as default
+            dept_courses = [c for c in courses_data if c["departmentId"] == sel_dept_id]
+            suggested_course_id = (
+                max(c["courseId"] for c in dept_courses) + 1
+                if dept_courses
+                else sel_dept_id * 1000 + 1
+            )
 
-        # Now let the user override it
-        course_id = st.number_input(
-            "Course ID",
-            min_value=1,
-            value=suggested_course_id,
-            step=1
-        )
+            # Now let the user override it
+            course_id = st.number_input(
+                "Course ID",
+                min_value=1,
+                value=suggested_course_id,
+                step=1
+            )
 
-        # Other fields
-        course_name = st.text_input("Course Name")
-        course_desc = st.text_area("Course Description")
-        section_id = st.number_input("Section ID", min_value=1, value=1)
+            # Other fields
+            course_name = st.text_input("Course Name")
+            course_desc = st.text_area("Course Description")
+            section_id = st.number_input("Section ID", min_value=1, value=1)
 
-        submit = st.form_submit_button("Add Course")
-        if submit:
-            if not course_name:
-                st.error("Course name is required!")
-            else:
-                payload = {
-                    "courseId": course_id,                # use the user‑entered ID
-                    "courseName": course_name,
-                    "courseDescription": course_desc,
-                    "departmentId": sel_dept_id,
-                    "sectionId": section_id
-                }
-                success, message, new_id = create_course(payload)
-                if success:
-                    created_id = new_id or course_id
-                    st.success(f"{message} (ID: {created_id})")
-                    logger.info(f"Added new course: {course_name} ({created_id})")
-                    st.rerun()
+            submit = st.form_submit_button("Add Course")
+            if submit:
+                if not course_name:
+                    st.error("Course name is required!")
                 else:
-                    st.error(message)
-
+                    payload = {
+                        "courseId": course_id,                # use the user‑entered ID
+                        "courseName": course_name,
+                        "courseDescription": course_desc,
+                        "departmentId": sel_dept_id,
+                        "sectionId": section_id
+                    }
+                    success, message, new_id = create_course(payload)
+                    if success:
+                        created_id = new_id or course_id
+                        st.success(f"{message} (ID: {created_id})")
+                        logger.info(f"Added new course: {course_name} ({created_id})")
+                        st.rerun()
+                    else:
+                        st.error(message)
     
     # Edit courses
     with st.expander("Edit Courses"):
@@ -452,20 +478,25 @@ with tab2:
                                 st.rerun()
                             else:
                                 st.error(message)
-                        
+
                         if delete_button:
-                            # Confirm deletion
-                            if st.checkbox("Confirm deletion - this cannot be undone"):
-                                # Send to API
-                                success, message = delete_course(selected_course_id)
+                            # Show a warning
+                            st.warning("Warning: You cannot delete courses that have student enrollments.")
+                            
+                            # Add a confirmation checkbox
+                            confirm_delete = st.checkbox("I understand and want to proceed with deletion")
+                            
+                            if confirm_delete:
+                                success, message = delete_course(course_info["courseId"], course_info["sectionId"])
                                 
                                 if success:
                                     st.success(message)
-                                    logger.info(f"Deleted course: {course_name}")
-                                    # Refresh the page to show the deleted course
+                                    logger.info(f"Successfully deleted course: {course_name}, Section: {section_id}")
+                                    # Refresh the page
                                     st.rerun()
                                 else:
                                     st.error(message)
+                                    logger.error(f"Failed to delete course: {message}")
         else:
             st.info("No courses found.")
     
