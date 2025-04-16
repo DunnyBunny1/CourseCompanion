@@ -11,6 +11,25 @@ from backend.ml_models.model01 import predict
 users = Blueprint('users', __name__)
 
 
+# Gets all users in the data base
+@users.route('/all', methods=['GET'])
+def search_user():
+    cursor = db.get_db().cursor()
+
+    query = '''
+        SELECT userId, firstName, lastName, bio, birthdate, universityEmail
+        FROM users
+    '''
+    
+    cursor.execute(query)
+    
+    return_data = cursor.fetchall()
+    
+    the_response = make_response(jsonify(return_data))
+    the_response.status_code = 200
+    return the_response
+
+
 # Gets a specific user
 @users.route('/<id>', methods=['GET'])
 def search_user(id):
