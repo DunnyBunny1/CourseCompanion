@@ -13,7 +13,7 @@ users = Blueprint('users', __name__)
 
 # Gets all users in the data base
 @users.route('/all', methods=['GET'])
-def search_user():
+def all_user():
     cursor = db.get_db().cursor()
 
     query = '''
