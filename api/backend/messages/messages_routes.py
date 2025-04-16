@@ -9,7 +9,7 @@ from backend.db_connection import db
 messages = Blueprint("messages", __name__)
 
 
-@messages.route("/messages", methods=["GET"])
+@messages.route("GET /messages", methods=["GET"])
 
 def get_all_messages():
     cursor = db.get_db().cursor()
@@ -24,6 +24,9 @@ def get_all_messages():
     
     return response
 
+@messages.route("/messages", methods=["GET"])
+
+@messages.route('GET /messages/<int:message_id> route', methods=['GET'])
 def get_my_messages(id: int):
     cursor = db.get_db().cursor()
     query: str = f"""
@@ -41,7 +44,8 @@ def get_my_messages(id: int):
     return the_response 
 
 
-def send_message():
+@messages.route('POST /messages/<int:message_id> route', methods=['POST'])
+def send_message(recipientsID : int[]):
     message_data = request.json
     current_app.logger.info(message_data)
     cursor = db.get_db().cursor()
@@ -52,20 +56,20 @@ def send_message():
     m_content = message_data('content')
     m_authorID = message_data('authorId')
     um_messageId = m_messageId
-    um_recipientId = message_data('recipientId')
+    um_recipientId = recipientsID
 
     query = """
-        INSERT INTO messages (createdAt, updatedAt, content, authorId)
-        VALUES (%s,%s,%s,%s)
-        INSERT INTO user_messages (messageId, recipientId)
-        VALUES (%s,%s)
-    """
+            INSERT INTO messages (createdAt, updatedAt, content, authorId)
+            VALUES (%s,%s,%s,%s)"""
+    for recipientId in um_recipientId:
+        query += f"""
+            INSERT INTO user_messages (messageId, recipientId)
+            VALUES ({m_messageId},{recipientId})
+        """
 
     values1 = (m_createdAt, m_updatedAt, m_content, m_authorID)
-    values2 = (um_messageId, um_recipientId)
     
     current_app.logger.info(query, values1)
-    current_app.logger.info(query, values2)    
 
     cursor.execute(query)
     db.get_db().commit()
@@ -75,28 +79,21 @@ def send_message():
     the_response.mimetype = 'application/json'
     return the_response
 
+@messages.route('PUT /messages/<int:message_id> route', methods=['PUT'])
 def update_message(message_id : int):
     current_app.logger.info('PUT /messages/<int:message_id> route')
     message_data = request.json
-    m_messageID = message_data('messageId')
-    m_createdAt = message_data('createdAt')
-    m_updatedAt = message_data('updatedAt')
-    m_content = message_data('content')
-    m_authorID = message_data('authorId')
 
-    query = '''
+    m_content = message_data('content')
+
+    query = f'''
         UPDATE messages 
-        SET messagesId = %s
-            createdAt = %s
-            updatedAt = %s
-            content = %s
-            authorId = %s
-        where messagesId = %s
+        SET content = {m_content}
+        where messagesId = {message_id}
     '''
 
-    value = (m_messageID, m_createdAt, m_updatedAt, m_content, m_authorID)
     cursor = db.get_db().cursor()
-    r = cursor.execute(query, value)
+    r = cursor.execute(query)
     db.get_db().commit()
 
     the_response = make_response(jsonify({"message": "Message was successfully updated"}))
@@ -105,6 +102,7 @@ def update_message(message_id : int):
     return the_response
 
 
+@messages.route('DELETE /messages/<int:message_id> route', methods=['DELETE'])
 def delete_message(message_id : int):
     current_app.logger.info(f'DELETE /messages/<int:message_id> route')
     cursor = db.get_db().cursor()
