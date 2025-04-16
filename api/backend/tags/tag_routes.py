@@ -4,7 +4,7 @@ from flask import Blueprint, request, jsonify, make_response, current_app, Respo
 from backend.db_connection import db
 from pymysql.cursors import DictCursor
 
-tags = Blueprint("employees", __name__)
+tags = Blueprint("tags", __name__)
 
 
 @tags.route("/tags", methods=["GET"])
