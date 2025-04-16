@@ -30,6 +30,24 @@ def search_user(id):
     the_response.status_code = 200
     return the_response
 
+# Get all users
+@users.route('/', methods=['GET'])
+def get_all_users():
+    cursor = db.get_db().cursor()
+
+    query = '''
+        SELECT userId, firstName, lastName, bio, birthdate, universityEmail
+        FROM users
+    '''
+    
+    cursor.execute(query)
+    
+    return_data = cursor.fetchall()
+    
+    the_response = make_response(jsonify(return_data))
+    the_response.status_code = 200
+    return the_response
+
 
 # Gets a users role
 @users.route('/<id>/role', methods=['GET'])

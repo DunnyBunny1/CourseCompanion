@@ -8,7 +8,7 @@ from backend.ml_models.model01 import predict
 
 
 # Creates a new blueprint object
-departments = Blueprint('departments', __name__)
+departments = Blueprint('departments_blueprint', __name__)
 
 
 # Gets all departments from the system
