@@ -10,6 +10,7 @@ from backend.departments.departments_routes import departments
 from backend.posts.post_routes import posts
 from backend.comments.comments_routes import comments
 from backend.tags.tag_routes import tags
+from backend.messages.message_routes import message
 
 
 def create_app():
@@ -42,7 +43,7 @@ def create_app():
     app.register_blueprint(posts,       url_prefix='/po')
     app.register_blueprint(comments,    url_prefix='/cmt')
     app.register_blueprint(departments, url_prefix='/dept')
-    app.register_blueprint(tags, url_prefix='/t')
+    app.register_blueprint(tags,        url_prefix='/t')
     app.register_blueprint(users,       url_prefix='/u')
 
     # Don't forget to return the app object
