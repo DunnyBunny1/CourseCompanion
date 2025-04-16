@@ -5,13 +5,20 @@ from flask import Flask
 
 from backend.db_connection import db
 
+from backend.comments.comments_routes import comments
 from backend.users.users_routes import users
 from backend.departments.departments_routes import departments
+<<<<<<< HEAD
 from backend.posts.post_routes import posts
 from backend.comments.comments_routes import comments
 from backend.tags.tag_routes import tags
 from backend.messages.messages_routes import messages
 
+=======
+
+import os
+from dotenv import load_dotenv
+>>>>>>> 96fde14 (created a static template before using database to fill in messages, recipients, etc.)
 
 def create_app():
     app = Flask(__name__)
