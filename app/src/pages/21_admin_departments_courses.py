@@ -158,17 +158,31 @@ def create_course(course_data):
 
 def update_course(course_data):
     try:
-        # Try using api container name for Docker or localhost for local development
         response = requests.put(
-                f'http://api:4000/crs/courses', 
-                json=course_data,
-                headers={"Content-Type": "application/json"}
-            ).json()
-       
-        return True, response.get("message", "Course updated successfully")
-    except Exception as e:
-        logger.error(f"API connection error: {str(e)}")
-        return False, f"API connection error: {str(e)}"
+            'http://api:4000/crs/courses',
+            json=course_data,
+            headers={"Content-Type": "application/json"}
+        )
+        # Success path
+        if response.ok:
+            try:
+                body = response.json()
+                return True, body.get("message", "Course updated successfully")
+            except ValueError:
+                # No JSON returned
+                return True, "Course updated successfully"
+        # Error path
+        else:
+            try:
+                err = response.json()
+                return False, err.get("message", f"Error: {response.status_code}")
+            except ValueError:
+                # Non‑JSON error
+                return False, f"Error {response.status_code}: {response.text}"
+    except requests.RequestException as e:
+        logger.error(f"API connection error: {e}")
+        return False, f"API connection error: {e}"
+
 
 def delete_course(course_id, section_id):
     try:
