@@ -52,9 +52,9 @@ with col1:
 
 with col2:
     # Enrollment Management
-    st.markdown("### User Role Editor")
+    st.markdown("### User Role Viewer")
     st.markdown("Control which users are enrolled in each course.")
-    if st.button("Manage Enrollments", use_container_width=True, type="primary"):
+    if st.button("View Now", use_container_width=True, type="primary"):
         logger.info("Navigating to Enrollment management")
         st.switch_page("pages/23_enrollment_updating.py")
     

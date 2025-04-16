@@ -500,9 +500,12 @@ with tab2:
         else:
             st.info("No courses found.")
     
-    # Filter and search functionality
-    with st.expander("Search and Filter Courses"):
+   # Filter and search functionality
+with st.expander("Search and Filter Courses"):
+    # Create a form for the search to prevent multiple button issues
+    with st.form(key="search_form"):
         col1, col2, col3 = st.columns(3)
+        
         with col1:
             # Department filter dropdown
             department_options = {dept["departmentName"]: dept["departmentId"] for dept in departments_data}
@@ -510,49 +513,93 @@ with tab2:
             
             selected_dept_name = st.selectbox(
                 "Filter by Department",
-                options=list(department_options.keys())
+                options=list(department_options.keys()),
+                help="Select a specific department or 'All Departments' to view courses from all departments"
             )
             department_filter = department_options[selected_dept_name]
         
         with col2:
-            search_name = st.text_input("Search by Course Name")
+            search_name = st.text_input(
+                "Search by Course Name", 
+                help="Enter keywords to search in course names"
+            )
         
         with col3:
-            search_section = st.number_input("Filter by Section ID", min_value=0, value=0)
+            search_section = st.number_input(
+                "Filter by Section ID", 
+                min_value=0, 
+                value=0,
+                help="Enter a section ID or leave as 0 to show all sections"
+            )
             if search_section == 0:
                 search_section = None
-                
-        if st.button("Search"):
+        
+        # Search and clear buttons in the same row
+        col1, col2 = st.columns(2)
+        with col1:
+            search_button = st.form_submit_button("🔍 Search", use_container_width=True)
+        with col2:
+            clear_button = st.form_submit_button("❌ Clear", use_container_width=True)
+    
+    # Process form submission
+    if search_button:
+        with st.spinner("Searching courses..."):
             filtered_courses = search_courses(
                 name_query=search_name,
                 dept_id=department_filter if department_filter != "All" else None,
                 section_id=search_section
             )
             st.session_state.filtered_courses = filtered_courses
-        
-        # Button to clear search and show all courses
+            st.session_state.search_applied = True
+            st.session_state.search_criteria = {
+                "department": selected_dept_name,
+                "name": search_name if search_name else "Any",
+                "section": search_section if search_section else "Any"
+            }
+    
+    if clear_button:
         if hasattr(st.session_state, 'filtered_courses'):
-            if st.button("Clear Search"):
-                del st.session_state.filtered_courses
-                st.rerun()
+            del st.session_state.filtered_courses
+        if hasattr(st.session_state, 'search_applied'):
+            del st.session_state.search_applied
+        if hasattr(st.session_state, 'search_criteria'):
+            del st.session_state.search_criteria
+        st.rerun()
+
+# Display courses table
+st.subheader("Current Courses")
+
+# Show active search filters if any are applied
+if hasattr(st.session_state, 'search_applied') and st.session_state.search_applied:
+    criteria = st.session_state.search_criteria
+    st.info(f"Showing results for: Department: {criteria['department']} | Name: {criteria['name']} | Section: {criteria['section']}")
+
+# Get courses for display (either from session state or fetch new)
+display_courses = st.session_state.filtered_courses if hasattr(st.session_state, 'filtered_courses') else courses_data
+
+if display_courses:
+    # Create a DataFrame with department names
+    courses_df = pd.DataFrame(display_courses)
+    courses_df["department"] = courses_df["departmentId"].apply(
+        lambda x: get_department_name(x, departments_data)
+    )
     
-    # Display courses table
-    st.subheader("Current Courses")
+    # Display the DataFrame
+    st.dataframe(
+        courses_df[["courseId", "courseName", "courseDescription", "department", "sectionId"]], 
+        use_container_width=True,
+        column_config={
+            "courseId": "Course ID",
+            "courseName": "Course Name",
+            "courseDescription": "Description",
+            "department": "Department",
+            "sectionId": "Section"
+        }
+    )
     
-    # Get courses for display (either from session state or fetch new)
-    display_courses = st.session_state.filtered_courses if hasattr(st.session_state, 'filtered_courses') else courses_data
-    
-    if display_courses:
-        # Create a DataFrame with department names
-        courses_df = pd.DataFrame(display_courses)
-        courses_df["department"] = courses_df["departmentId"].apply(
-            lambda x: get_department_name(x, departments_data)
-        )
-        
-        # Display the DataFrame
-        st.dataframe(courses_df[["courseId", "courseName", "courseDescription", "department", "sectionId"]], 
-                   use_container_width=True)
-    else:
-        st.info("No courses found for the selected criteria.")
+    # Show result count
+    st.caption(f"Found {len(display_courses)} course(s)")
+else:
+    st.info("No courses found for the selected criteria.")
 # Footer
 st.markdown("---")

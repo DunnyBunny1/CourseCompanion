@@ -79,17 +79,67 @@ def create_role(id):
     u_role = request_data.get('user_role')
     u_course = request_data.get('user_course')
     u_section = request_data.get('user_section')
-
-    query = '''
-        INSERT INTO user_course(userId, role, courseId, sectionId)
-        VALUES (%s, %s, %s, %s)
-    '''
     
-    cursor.execute(query, (id, u_role, u_course, u_section))
+    # Check if the API is receiving the isActive field in the request
+    print(f"Received data: {request_data}")
+    
+    # Try to get table schema to confirm isActive field
+    try:
+        cursor.execute("SHOW COLUMNS FROM user_course")
+        columns = cursor.fetchall()
+        column_names = [col[0] for col in columns]
+        print(f"Table columns: {column_names}")
+        
+        # Check if isActive field exists
+        if 'isActive' in column_names:
+            # Field exists, include it in the query
+            is_active = request_data.get('isActive', 1)  # Default to 1 if not provided
+            
+            query = '''
+                INSERT INTO user_course(userId, role, courseId, sectionId, isActive)
+                VALUES (%s, %s, %s, %s, %s)
+            '''
+            
+            cursor.execute(query, (id, u_role, u_course, u_section, is_active))
+        else:
+            # Field doesn't exist, use original query
+            query = '''
+                INSERT INTO user_course(userId, role, courseId, sectionId)
+                VALUES (%s, %s, %s, %s)
+            '''
+            
+            cursor.execute(query, (id, u_role, u_course, u_section))
+    except Exception as e:
+        # If SHOW COLUMNS fails, try with isActive anyway since the error suggests it exists
+        print(f"Error checking schema: {str(e)}")
+        
+        try:
+            is_active = request_data.get('isActive', 1)
+            
+            query = '''
+                INSERT INTO user_course(userId, role, courseId, sectionId, isActive)
+                VALUES (%s, %s, %s, %s, %s)
+            '''
+            
+            cursor.execute(query, (id, u_role, u_course, u_section, is_active))
+        except Exception as e2:
+            print(f"Error inserting with isActive: {str(e2)}")
+            
+            # Try without isActive as last resort
+            try:
+                query = '''
+                    INSERT INTO user_course(userId, role, courseId, sectionId)
+                    VALUES (%s, %s, %s, %s)
+                '''
+                
+                cursor.execute(query, (id, u_role, u_course, u_section))
+            except Exception as e3:
+                print(f"Error inserting without isActive: {str(e3)}")
+                raise e3  # Re-raise the last exception
     
     db.get_db().commit()
 
-    the_response = make_response(jsonify({"message": "User added successfully"}))
+    the_response = make_response(jsonify({"message": "User role added successfully"}))
     the_response.status_code = 200
     the_response.mimetype = 'application/json'
     return the_response

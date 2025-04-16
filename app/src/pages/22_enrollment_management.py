@@ -297,7 +297,7 @@ if available_courses:
                 )
                 if ok:
                     st.success("Added enrollment successfully!")
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.error(
                         "Failed to add enrollment. "
