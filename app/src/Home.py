@@ -67,21 +67,21 @@ if st.button("Course Feed Page",
     logger.info("Visiting the course feed page...")
     st.switch_page('pages/course_feed_page.py')
 
-if st.button("Messages Page", 
-            type = 'primary', 
-            use_container_width=True):
+# if st.button("Messages Page", 
+#             type = 'primary', 
+#             use_container_width=True):
         
-       # TODO: Set user roles and session page state  
-    # when user clicks the button, they are now considered authenticated
-#     st.session_state['authenticated'] = True
-    # st.session_state['role'] = 'pol_strat_advisor'
-    # we add the first name of the user (so it can be displayed on 
-    # subsequent pages). 
-#     st.session_state['first_name'] = 'John'
-    # finally, we ask streamlit to switch to another page, in this case, the 
-    # landing page for this particular user type
-    logger.info("Visiting the message page...")
-    st.switch_page('pages/10_messages_page.py')
+#        # TODO: Set user roles and session page state  
+#     # when user clicks the button, they are now considered authenticated
+# #     st.session_state['authenticated'] = True
+#     # st.session_state['role'] = 'pol_strat_advisor'
+#     # we add the first name of the user (so it can be displayed on 
+#     # subsequent pages). 
+# #     st.session_state['first_name'] = 'John'
+#     # finally, we ask streamlit to switch to another page, in this case, the 
+#     # landing page for this particular user type
+#     logger.info("Visiting the message page...")
+#     st.switch_page('pages/10_messages_page.py')
 
 if st.button('Admin Page', 
             type = 'primary', 

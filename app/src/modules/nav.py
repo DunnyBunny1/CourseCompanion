@@ -10,8 +10,8 @@ def HomeNav():
     st.sidebar.page_link("Home.py", label="Home", icon="🏠")
 
 
-def MessageNav():
-    st.sidebar.page_link("pages/10_messages_page.py", label="Messages", icon="💬")
+# def MessageNav():
+#     st.sidebar.page_link("pages/10_messages_page.py", label="Messages", icon="💬")
 
 
 # def AboutPageNav():

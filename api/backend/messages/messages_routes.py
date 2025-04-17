@@ -1,3 +1,4 @@
+from typing import List 
 from flask import Blueprint
 from flask import request
 from flask import jsonify
@@ -45,7 +46,7 @@ def get_my_messages(id: int):
 
 
 @messages.route('POST /messages/<int:message_id> route', methods=['POST'])
-def send_message(recipientsID : int[]):
+def send_message(recipientsID : List[int]):
     message_data = request.json
     current_app.logger.info(message_data)
     cursor = db.get_db().cursor()
