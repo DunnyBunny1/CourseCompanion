@@ -204,17 +204,6 @@ with col2:
                         "Section": "Section ID"
                     }
                 )
-
-                # Add explanation about disabled editing
-                with st.container(border=True):
-                    st.markdown("### Role Editing Temporarily Disabled")
-                    st.markdown("""
-                    Role editing functionality is currently unavailable due to a database configuration issue.
-                    
-                    To update user roles:
-                    1. Please use the Enrollment Overview and Management interface to remove and re-add users with different roles
-                    2. Contact your system administrator to resolve the database issue
-                    """)
             else:
                 st.info("No roles found for this user.")
         else:
