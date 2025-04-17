@@ -68,7 +68,7 @@ def SideBarLinks():
 
     # add a logo to the sidebar always
     st.sidebar.image("assets/course-companion-logo.svg", width=200)
-    MessageNav()
+    # MessageNav()
     HomeNav()
     
    
