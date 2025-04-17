@@ -21,7 +21,25 @@ def all_user():
     '''
     
     cursor.execute(query)
+    return_data = cursor.fetchall()
     
+    the_response = make_response(jsonify(return_data))
+    the_response.status_code = 200
+    return the_response
+
+
+# Gets all users in the data base
+@users.route('/users/<int:course_id>/<int:section_id>/role/<string:role_id>', methods=['GET'])
+def get_all_users_of_role(course_id, section_id, role_id):
+    cursor = db.get_db().cursor()
+
+    query = f'''
+        SELECT userId, firstName, lastName
+        FROM users u JOIN user_course uc ON u.userId = uc.userId
+        WHERE uc.role = {role_id} AND uc.courseId = {course_id} AND uc.sectionId = {section_id}
+    '''
+    
+    cursor.execute(query)
     return_data = cursor.fetchall()
     
     the_response = make_response(jsonify(return_data))

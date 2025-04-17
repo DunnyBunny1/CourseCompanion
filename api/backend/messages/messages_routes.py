@@ -10,8 +10,7 @@ from backend.db_connection import db
 messages = Blueprint("messages", __name__)
 
 
-@messages.route("GET /messages", methods=["GET"])
-
+@messages.route("/messages", methods=["GET"])
 def get_all_messages():
     cursor = db.get_db().cursor()
     query: str = """
@@ -22,43 +21,43 @@ def get_all_messages():
     response = make_response(data)
     response.status_code = 200 
     response.mimetype = 'application/json'
-    
     return response
 
-@messages.route("/messages", methods=["GET"])
-
-@messages.route('GET /messages/<int:message_id> route', methods=['GET'])
-def get_my_messages(id: int):
+@messages.route('/messages/<int:user_id>', methods=['GET'])
+def get_my_messages(user_id: int):
     cursor = db.get_db().cursor()
     query: str = f"""
-    SELECT m.content
-    FROM user_messages um
-    JOIN messages m ON um.messageID = m.messageID
-    WHERE um.recipientID = {id} 
+        SELECT m.messageId,
+        m.content,
+        m.createdAt,
+        m.authorId,
+        GROUP_CONCAT(DISTINCT um.recipientId) AS recipientIds
+        FROM messages m
+            LEFT JOIN
+        user_messages um ON m.messageId = um.messageId
+        WHERE m.authorId = {user_id}   
+        OR um.recipientId = {user_id} 
+        GROUP BY m.messageId
     """
     cursor.execute(query)
     data = cursor.fetchall()
     the_response = make_response(data)
     the_response.status_code = 200 
     the_response.mimetype = 'application/json'
-    
     return the_response 
 
 
-@messages.route('POST /messages/<int:message_id> route', methods=['POST'])
-def send_message(recipientsID : List[int]):
+@messages.route('/messages/<int:recipients_id>', methods=['POST'])
+def send_message(recipients_id : List[int]):
     message_data = request.json
     current_app.logger.info(message_data)
     cursor = db.get_db().cursor()
-
     m_messageId = message_data('messageId')
     m_createdAt = message_data('createdAt')
     m_updatedAt = message_data('updatedAt')
     m_content = message_data('content')
     m_authorID = message_data('authorId')
-    um_messageId = m_messageId
-    um_recipientId = recipientsID
-
+    um_recipientId = recipients_id
     query = """
             INSERT INTO messages (createdAt, updatedAt, content, authorId)
             VALUES (%s,%s,%s,%s)"""
@@ -67,9 +66,8 @@ def send_message(recipientsID : List[int]):
             INSERT INTO user_messages (messageId, recipientId)
             VALUES ({m_messageId},{recipientId})
         """
-
     values1 = (m_createdAt, m_updatedAt, m_content, m_authorID)
-    
+
     current_app.logger.info(query, values1)
 
     cursor.execute(query)
@@ -80,7 +78,7 @@ def send_message(recipientsID : List[int]):
     the_response.mimetype = 'application/json'
     return the_response
 
-@messages.route('PUT /messages/<int:message_id> route', methods=['PUT'])
+@messages.route('/messages/<int:message_id>', methods=['PUT'])
 def update_message(message_id : int):
     current_app.logger.info('PUT /messages/<int:message_id> route')
     message_data = request.json
@@ -103,7 +101,7 @@ def update_message(message_id : int):
     return the_response
 
 
-@messages.route('DELETE /messages/<int:message_id> route', methods=['DELETE'])
+@messages.route('/messages/<int:message_id>', methods=['DELETE'])
 def delete_message(message_id : int):
     current_app.logger.info(f'DELETE /messages/<int:message_id> route')
     cursor = db.get_db().cursor()
