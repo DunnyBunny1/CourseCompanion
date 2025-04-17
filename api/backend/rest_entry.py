@@ -11,6 +11,7 @@ from backend.departments.departments_routes import departments
 from backend.posts.post_routes import posts
 from backend.tags.tag_routes import tags
 from backend.messages.messages_routes import messages
+from backend.course.courses_routes import courses
 
 def create_app():
     app = Flask(__name__)
@@ -44,6 +45,7 @@ def create_app():
     app.register_blueprint(tags,        url_prefix='/t')
     app.register_blueprint(users,       url_prefix='/u')
     app.register_blueprint(messages,    url_prefix='/m')
+    app.register_blueprint(courses,    url_prefix='/crs')
 
     # Don't forget to return the app object
     return app
