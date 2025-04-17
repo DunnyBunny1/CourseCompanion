@@ -1,5 +1,6 @@
 import streamlit as st
 from modules.nav import SideBarLinks
+import requests
 
 st.set_page_config(layout="wide")
 SideBarLinks()
@@ -7,51 +8,64 @@ SideBarLinks()
 st.markdown("<h2>🔍 Search & Filter Messages</h2>", unsafe_allow_html=True)
 st.markdown("---")
 
-# Sample data for demonstration
-messages_data = [
-    {"chat": "Study Group for Chemistry", "sender": "Ziming", "message": "Hey, what's up guys"},
-    {"chat": "Study Group for Chemistry", "sender": "Max", "message": "Let's review Chapter 3 today"},
-    {"chat": "Databases Partner", "sender": "Jeff", "message": "Finished the ER diagram"},
-    {"chat": "Fundies Partner", "sender": "Vee", "message": "Ready for the quiz?"},
-    {"chat": "Databases Partner", "sender": "Alice", "message": "Add foreign key constraints too"},
-    {"chat": "Study Group for Chemistry", "sender": "Vee", "message": "The worksheet was easy"},
-]
+tempid = 1
 
-# Sidebar filters
-st.subheader("Filter Options")
+if st.button("Get All My Messages", use_container_width=True):
+    messages = requests.get(f'http://api:4000/m/messages/{tempid}').json()
+    content_list = []
+    time_list = []
+    
+    for message in messages:
+        content_list.append(message['content'])
+        time_list.append(message['createdAt'])
+    try:
+        for i in range(len(content_list)):
+            st.write("**" + content_list[i] + "**")
+            st.write(time_list[i])
+    except:
+        st.write("Could not connect to database to get messages")
 
-chat_options = sorted(list(set(msg["chat"] for msg in messages_data)))
-sender_options = sorted(list(set(msg["sender"] for msg in messages_data)))
 
-selected_chat = st.selectbox("Select Chat", ["All"] + chat_options)
-selected_sender = st.selectbox("Select Sender", ["All"] + sender_options)
-keyword = st.text_input("Search Keyword")
+with st.form("Get Specific Message", clear_on_submit=False):
+    message_selected = requests.get(f'http://api:4000/m/messages/people/{tempid}').json()
+    
+    authors = []
+    author_id_key = {}
 
-# Filtering logic
-def filter_messages():
-    filtered = messages_data
+    for m in message_selected:
+        author_id = m['authorId']
 
-    if selected_chat != "All":
-        filtered = [msg for msg in filtered if msg["chat"] == selected_chat]
+        author_info = requests.get(f'http://api:4000/u/users/{author_id}').json()
 
-    if selected_sender != "All":
-        filtered = [msg for msg in filtered if msg["sender"] == selected_sender]
 
-    if keyword.strip():
-        filtered = [msg for msg in filtered if keyword.lower() in msg["message"].lower()]
+        first_name = author_info[0]['firstName']
+        last_name = author_info[0]['lastName']
 
-    return filtered
+        full_name = f"{first_name} {last_name}"
+        authors.append(full_name)
+        author_id_key.update({full_name: author_id})
 
-filtered_messages = filter_messages()
+    message_list = []
 
-st.markdown("### 📬 Filtered Results")
-if filtered_messages:
-    for msg in filtered_messages:
-        st.markdown(f"""
-        **Chat:** {msg['chat']}  
-        **Sender:** {msg['sender']}  
-        **Message:** _{msg['message']}_  
-        ---  
-        """)
-else:
-    st.warning("No messages found matching your filters.")
+    message_select = st.selectbox("Find Your Messages", options=authors)
+
+    submitted = st.form_submit_button("Search", use_container_width=True)
+    if submitted:
+        get_my_messages = requests.get(f'http://api:4000/m/messages/{author_id_key[message_select]}/{tempid}').json()
+        try:
+            content_list = []
+            time_list = []
+            name_list = []
+            for message in get_my_messages:
+                content_list.append(message['content'])
+                time_list.append(message['createdAt'])
+                name_list.append(message['firstName'] + " " + message['lastName'])
+            
+            try:
+                for i in range(len(content_list)):
+                    st.write("**FROM: " + name_list[i] + " : " + content_list[i] + "**")
+                    st.write(time_list[i])
+            except:
+                st.write("Could not connect to database to get messages")
+        except:
+            st.write("Could not connect to database to get messages")

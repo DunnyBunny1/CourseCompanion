@@ -48,6 +48,38 @@ def retrieve_course_by_id(course_id):
     the_response.mimetype = 'application/json'
     return the_response
 
+
+
+
+
+
+
+# Retrieve a specific course based on a given student id
+@courses.route('/courses/of_student/<int:student_id>', methods=['GET'])
+def retrieve_course_by_student_id(student_id):
+    cursor = db.get_db().cursor()
+    the_query = f'''
+        SELECT c.courseName, c.sectionId, c.courseId
+        FROM user_course uc JOIN courses c ON uc.courseId = c.courseId AND uc.sectionId = c.sectionId
+        WHERE uc.userId = {student_id}
+    '''
+    
+    cursor.execute(the_query)
+    theData = cursor.fetchall()
+
+    the_response = make_response(jsonify(theData))
+    the_response.status_code = 200
+    the_response.mimetype = 'application/json'
+    return the_response
+
+
+
+
+
+
+
+
+
 #------------------------------------------------------------
 # Update an existing course
 @courses.route('/courses', methods=['PUT'])
@@ -119,7 +151,6 @@ def create_course():
     r = cursor.execute(the_query, data)
     db.get_db().commit()
     
-    # Get the ID of the newly created course
     new_id = cursor.lastrowid
     
     the_response = make_response(jsonify({
@@ -135,23 +166,18 @@ def create_course():
 @courses.route('/courses/search', methods=['GET'])
 def search_courses():
     current_app.logger.info('GET /courses/search route')
-    
-    # Get search parameters from query string
     name_query = request.args.get('name', '')
     dept_id = request.args.get('departmentId', None)
     section_id = request.args.get('sectionId', None)
     
-    # Start building the query
     the_query = '''
         SELECT courseId, courseName, courseDescription, sectionId, departmentId
         FROM course_companion.courses
         WHERE 1=1
     '''
     
-    # Initialize parameters list
     params = []
     
-    # Add filters based on provided parameters
     if name_query:
         the_query += ' AND courseName LIKE %s'
         params.append(f'%{name_query}%')
@@ -164,15 +190,12 @@ def search_courses():
         the_query += ' AND sectionId = %s'
         params.append(section_id)
     
-    # Add sorting
     the_query += ' ORDER BY courseName ASC'
     
-    # Execute query
     cursor = db.get_db().cursor()
     cursor.execute(the_query, tuple(params))
     theData = cursor.fetchall()
     
-    # Create response
     the_response = make_response(jsonify(theData))
     the_response.status_code = 200
     the_response.mimetype = 'application/json'

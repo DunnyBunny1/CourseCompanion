@@ -1,48 +1,89 @@
 import streamlit as st
 from modules.nav import SideBarLinks
+import requests
 
 st.set_page_config(layout="wide")
 SideBarLinks()
 
 st.markdown("<h2 style='margin-bottom: 0;'>📨 Messages Feed</h2>", unsafe_allow_html=True)
 
+tempid = 1
+
 with st.container():
     col1, col2, spacer = st.columns([2, 2, 6])
     with col1:
-        if st.button("New Group Chat", use_container_width=True):
-            st.switch_page('pages/11_new_group_chat_page.py')
+        if st.button("Send New Message", use_container_width=True):
+            st.switch_page('pages/send_new_message.py')
 
     with col2:
         if st.button("Search Messages", use_container_width=True):
-            st.switch_page('pages/12_filter_messages_page.py')
+            st.switch_page('pages/filter_messages_page.py')
 
 st.markdown("---")
 
 if "selected_chat" not in st.session_state:
-    st.session_state.selected_chat = "Study Group for Chemistry"
+    st.session_state.selected_chat = "None"
 
 left_col, right_col = st.columns([2, 6])
+
+chat_num = 0
+messages = []
+chats = requests.get(f'http://api:4000/m/messages/{tempid}').json()
 
 with left_col:
     st.subheader("Chats")
 
-    chat_items = [
-        ("Study Group for Chemistry", "Today, 8:38 PM"),
-        ("Databases Partner", "Today, 6:30 PM"),
-        ("Fundies Partner", "Today, 6:20 PM"),
-    ]
 
-    for chat_title, timestamp in chat_items:
-        label = f"{chat_title}\n{timestamp}"
-        if st.button(label, use_container_width=True, key=chat_title):
-            st.session_state.selected_chat = chat_title
+    list = []
+
+    for chat in chats:
+        if str(chat["authorId"]) not in list:
+            x = chat["authorId"]
+            author_name = requests.get(f"http://api:4000/u/users/{x}").json()
+            first_name = author_name[0]['firstName']
+            st.button(label=first_name)  
+            list.append(str(chat["authorId"]))
+
+
+    # chats = requests.get(f'http://api:4000/m/messages/{tempid}').json()
+    # current_user = requests.get(f'http://api:4000/u/users/{tempid}').json()
+    # current_first_name = current_user[0]['firstName']
+
+    # recipients = []
+
+    # for chat in chats:
+    #     id = chat['authorId']
+    #     json_name = requests.get(f"http://api:4000/u/users/{id}").json()
+    #     first_name = json_name[0]['firstName']
+    #     recipients.append(first_name)
+
+    # if tempid in recipients:
+    #     recipients.removeAll(current_first_name)
+    #     chat.removeAll(tempid)
+
+    # buttons = []
+    # recipients_string = "TO: "
+
+    # for i in range(len(chat)):
+    #     recipients_string += recipients[i] + ", "
+    #     button = st.button(recipients_string)
+    #     buttons.append(button)
+    #     if button:
+    #         st.session_state.selected_chat = recipients[i]
+    #         chat_num = chats[i]['author_id']
+        
 
 with right_col:
-    selected_chat = st.session_state.selected_chat
-    st.subheader(selected_chat)
-    st.markdown("**To: Max, Jeff, Vee, Ziming**")
 
-    with st.container():
-        st.markdown("##### Ziming: `Hey, what's up guys`")
+    messages = [
+        "Hey, what's up!",
+        "Yo",
+        "When is the test?",
+        "You good to hang out tomorrow",
+        "Sorry, I'm busy"
+    ]
 
-    st.text_input("Text Message", placeholder="Type a message and press Enter to send...")
+    for m in messages:
+        st.write(m)
+
+
