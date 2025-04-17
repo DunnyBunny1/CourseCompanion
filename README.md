@@ -19,7 +19,6 @@ CourseCompanion consists of three main components:
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
-- A GitHub Account
 - A terminal-based git client or GUI Git client such as GitHub Desktop or the Git plugin for VSCode
 - VSCode with the Python Plugin
 - A distribution of Python running on your laptop (Anaconda or Miniconda recommended)
