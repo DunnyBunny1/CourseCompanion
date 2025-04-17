@@ -134,7 +134,7 @@ if st.button("← Back to Admin Home"):
 
 # Main content
 st.write("This tool allows administrators to view user roles in courses.")
-st.info("🛈 Role Fast editing is temporarily disabled due to a database configuration issue. Please contact your system administrator.")
+#st.info("🛈 Role Fast editing is temporarily disabled due to a database configuration issue. Please contact your system administrator.")
 
 # Create a two-column layout
 col1, col2 = st.columns([1, 2])
