@@ -94,6 +94,13 @@ This matrix outlines the resources identified from our user stories, including t
 | `/courses` | Retrieve all courses with optional filtering parameters | Create a new course | n/a | n/a |
 | `/courses/{id}` | Retrieve a specific course by ID | n/a | Update an existing course | Delete a specific course |
 | `/courses/search` | Search for courses based on specific criteria | n/a | n/a | n/a |
+| /analytics/engagement | Retrieve student engagement analytics | n/a | n/a | n/a |
+| /analytics/avg-enrollment | Retrieves average enrollment per course section | n/a | n/a | n/a | 
+| /analytics/role-distribution| Retrieves the distribution of user roles across the platform | n/a | n/a | n/a |
+| /analytics/active-hours | Retrieves the most active hours based on post and comment creation | n/a | n/a | n/a | 
+| /analytics/avg-posts | Finds average number of posts in each class | n/a | n/a | n/a |
+
+
 
 ## Troubleshooting
 
