@@ -29,15 +29,21 @@ def get_posts_from_active_class(
     :param class_data: a dictionary mapping each course name to its (sectionId, courseId) pair
     """
     # Retrieve the active class based on the dropdown choice
-    course_id, section_id = class_data[st.session_state["active_class"]]
-
+    course_id, section_id = class_data[st.session_state["active_class_name"]]
+    
     # Retrieve all the posts from the active class 
+    # Sort the posts by createdAt in descending order
     response: List[Dict[str, Any]] = requests.get(
         url="http://api:4000/po/posts", 
         params={
-            "courseId" : course_id, "sectionId" : section_id
+            "courseId" : course_id, "sectionId" : section_id, "sortBy" : "createdAt"
         }
     ).json()
+    
+    
+    # st.write(response)
+    
+    return response
 
     # response: List[Dict[str, Any]] = [
     #     {
@@ -75,11 +81,6 @@ def get_posts_from_active_class(
     #     },
     # ]
 
-    # Sort the posts from most newly created to least newly created
-    posts: List[Dict[str, Any]] = sorted(
-        response, key=lambda dict_item: dict_item["createdAt"], reverse=False
-    )
-    return posts
 
     # for post in posts:
     #     st.write(pformat(post))
@@ -151,6 +152,14 @@ def display_post(post: Dict[str, Any]):
 
 
 class_data: Dict[str, Tuple[int, int]] = get_class_data()
+
+def update_class_and_section():
+    st.write("Updating class data")
+    selected_class = st.session_state["active_class_name"]
+    course_id, section_id = class_data[selected_class]
+    st.session_state["active_course_id"] = course_id
+    st.session_state["active_section_id"] = section_id
+
 # st.write(pformat(class_data))
 
 # Use the keys of our dictionary (the class names) as our dropdown options
@@ -158,12 +167,22 @@ class_options = class_data.keys()
 
 # Create a dropdown menu - the response gets returned into the session state
 # Streamlit will automatically refresh this (kind of like a pub/sub) after each choice
-st.session_state["active_class"] = st.selectbox(
+# The key="active_class_name" will autoamtically save the user choice 
+# to active_class_name
+st.selectbox(
     "Which class would you like to view the feed for?",
     class_options,
+    key="active_class_name",
+    on_change=update_class_and_section,
 )
 
-st.write("You selected: ", st.session_state["active_class"])
+
+
+# # Set the active class info for future page s
+# st.session_state["active_course_id"] = course_id
+# st.session_state["active_section_id"] = section_id
+
+st.write("You selected: ", st.session_state["active_class_name"], class_data[ st.session_state["active_class_name"]])
 
 
 # Create 2 buttons: A new post button (on the left) and a search button the right 

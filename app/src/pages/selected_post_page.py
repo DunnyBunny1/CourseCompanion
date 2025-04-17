@@ -19,9 +19,6 @@ add_ret_to_home_button()
 SideBarLinks()
 
 
-
-    
-
 def display_comment(comment : Dict[str, Any]): 
     # TODO: Consider changing the comment icon based on the commenter's role 
         
