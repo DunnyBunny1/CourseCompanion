@@ -8,16 +8,34 @@ analytics = Blueprint("analytics", __name__)
 @analytics.route("/engagement", methods=["GET"])
 def get_engagement_analytics():
     """
-    Retrieves all available post tags
+    Retrieves engagement analytics for each course, returning
+    courses ranked by most engagement to least engagemnt
     """
-    current_app.logger.info('GET /tags route')
+    current_app.logger.info('GET /engagement route')
     
     # Get a cursor for our shared DB connection
     cursor: DictCursor = db.get_db().cursor()
 
-   
+    # Retrieve the total # of posts / comments, 
+    # as well as the total # of unique posters / commenters
+    # across each course. Sorts the courses by total 
+    # engagement, as determined by the # of posts + # of
+    # comments combined
     query: str = """
-    SELECT * FROM tags  
+    SELECT c.courseId,
+       c.sectionId,
+       c.courseName,
+       COUNT(DISTINCT p.postId)      AS total_posts,
+       COUNT(DISTINCT com.commentId) AS total_comments,
+       COUNT(DISTINCT p.authorId)    AS unique_posters,
+       COUNT(DISTINCT com.authorId)  AS unique_commenters
+    FROM courses c
+            LEFT JOIN
+        posts p ON c.courseId = p.courseId AND c.sectionId = p.sectionId
+            LEFT JOIN
+        comments com ON p.postId = com.postId
+    GROUP BY c.courseId, c.sectionId, c.courseName
+    ORDER BY total_posts + total_comments DESC
     """
 
     # Execute our query
