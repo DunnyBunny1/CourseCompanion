@@ -15,6 +15,10 @@ from backend.course.courses_routes import courses
 from backend.analytics.analytics_routes import analytics
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 14851bd (pulled stuff and removed old files)
 def create_app():
     app = Flask(__name__)
 
