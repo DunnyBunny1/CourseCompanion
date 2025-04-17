@@ -17,11 +17,6 @@ from modules.nav import SideBarLinks
 # are organized/displayed on the screen).
 st.set_page_config(layout = 'wide')
 
-# If a user is at this page, we assume they are not 
-# authenticated.  So we change the 'authenticated' value
-# in the streamlit session_state to false. 
-st.session_state['authenticated'] = False
-
 # Use the SideBarLinks function from src/modules/nav.py to control
 # the links displayed on the left-side panel. 
 # IMPORTANT: ensure src/.streamlit/config.toml sets
@@ -46,21 +41,34 @@ with col2:
     st.image("assets/course-companion-logo.svg", width=500)
 
 
-if st.button("Course Feed Page", 
-            type = 'primary', 
-            use_container_width=True):
-    logger.info("Visiting the course feed page...")
-    st.switch_page('pages/course_feed_page.py')
+if st.button('Act as Bob, a Student', 
+                type = 'primary', 
+                use_container_width=True):
+    st.session_state["persona"] = "Bob"
+    st.switch_page("pages/landing_page.py")
+    
 
-if st.button('Admin Page', 
-            type = 'primary', 
-            use_container_width=True):
-    st.switch_page('pages/20_admin_page.py')
+if st.button('Act as Veronica, a Systems Admin', 
+                type = 'primary', 
+                use_container_width=True):
+    st.session_state["persona"] = "Veronica"
+    
+    st.switch_page("pages/landing_page.py")
 
-if st.button('Dashboard Analytics', 
-            type = 'primary', 
-            use_container_width=True):
-    st.switch_page('pages/dashboard_analytics.py')
+if st.button('Act as Prof. James, a Teacher', 
+                type = 'primary', 
+                use_container_width=True):
+    st.session_state["persona"] = "Prof. James"
+    st.switch_page("pages/landing_page.py")
+
+if st.button('Act as Jane, a teaching assistant', 
+                type = 'primary', 
+                use_container_width=True):
+    st.session_state["persona"] = "Jane"
+    st.switch_page("pages/landing_page.py")
+    
+
+
 
 
 
