@@ -18,10 +18,13 @@ def get_all_messages():
     """
     cursor.execute(query)
     data = cursor.fetchall()
-    response = make_response(data)
+    response = make_response(jsonify(data))
     response.status_code = 200 
     response.mimetype = 'application/json'
     return response
+
+
+
 
 @messages.route('/messages/<int:user_id>', methods=['GET'])
 def get_my_messages(user_id: int):
@@ -41,45 +44,62 @@ def get_my_messages(user_id: int):
     """
     cursor.execute(query)
     data = cursor.fetchall()
-    the_response = make_response(data)
+    the_response = make_response(jsonify(data))
     the_response.status_code = 200 
     the_response.mimetype = 'application/json'
     return the_response 
 
 
-@messages.route('/messages/<int:recipients_id>', methods=['POST'])
-def send_message(recipients_id : List[int]):
-    message_data = request.json
-    current_app.logger.info(message_data)
+
+@messages.route('/messages/conversations/<int:user_id>', methods=['GET'])
+def get_conversations_for_user(user_id):
     cursor = db.get_db().cursor()
-    m_messageId = message_data('messageId')
-    m_createdAt = message_data('createdAt')
-    m_updatedAt = message_data('updatedAt')
-    m_content = message_data('content')
-    m_authorID = message_data('authorId')
-    um_recipientId = recipients_id
+
     query = """
-            INSERT INTO messages (createdAt, updatedAt, content, authorId)
-            VALUES (%s,%s,%s,%s)"""
-    for recipientId in um_recipientId:
-        query += f"""
-            INSERT INTO user_messages (messageId, recipientId)
-            VALUES ({m_messageId},{recipientId})
-        """
-    values1 = (m_createdAt, m_updatedAt, m_content, m_authorID)
+        SELECT GROUP_CONCAT(DISTINCT u.firstName ORDER BY u.firstName) AS participants, 
+        m.authorId
+        FROM user_messages um
+        JOIN messages m ON um.messageId = m.messageId
+        JOIN users u ON um2.recipientId = u.userId
+        WHERE um.recipientId = %s
+    """
 
-    current_app.logger.info(query, values1)
-
-    cursor.execute(query)
-    db.get_db().commit()
-
-    the_response = make_response(jsonify({"message": "Message was successfully sent"}))
-    the_response.status_code = 200
+    cursor.execute(query, (user_id,))
+    data = cursor.fetchall()
+    the_response = make_response(jsonify(data))
+    the_response.status_code = 200 
     the_response.mimetype = 'application/json'
-    return the_response
+    return the_response 
+
+
+
+@messages.route('/messages/people/<int:user_id>', methods=['GET'])
+def get_message_people(user_id: int):
+    cursor = db.get_db().cursor()
+    query = """
+        SELECT DISTINCT m.authorId
+        FROM messages m
+        LEFT JOIN user_messages um ON m.messageId = um.messageId
+        WHERE um.recipientId = %s
+    """
+    cursor.execute(query, (user_id))
+    data = cursor.fetchall()
+    the_response = make_response(jsonify(data))
+    the_response.status_code = 200 
+    the_response.mimetype = 'application/json'
+    return the_response 
+
+
+
+
+
+
+
+
+
 
 @messages.route('/messages/<int:message_id>', methods=['PUT'])
-def update_message(message_id : int):
+def update_messages(message_id : int):
     current_app.logger.info('PUT /messages/<int:message_id> route')
     message_data = request.json
 
@@ -114,4 +134,32 @@ def delete_message(message_id : int):
     the_response.status_code = 200 
     the_response.mimetype = 'application/json'
     return the_response
+
+
+
+@messages.route('/messages/<int:author_id>/<int:user_id>', methods=['GET'])
+def get_peoples_messages(author_id: int, user_id: int):
+    cursor = db.get_db().cursor()
+    query: str = f"""
+        SELECT m.content,
+        m.createdAt,
+        u.firstName, 
+        u.lastName,
+        GROUP_CONCAT(DISTINCT um.recipientId) AS recipientIds
+        FROM messages m
+            LEFT JOIN
+        user_messages um ON m.messageId = um.messageId
+        JOIN users u ON m.authorID = u.userId
+        WHERE m.authorId = {user_id}   
+        OR um.recipientId = {user_id} 
+        AND m.authorId = {author_id}
+        GROUP BY m.messageId
+    """
+    cursor.execute(query)
+    data = cursor.fetchall()
+    the_response = make_response(jsonify(data))
+    the_response.status_code = 200 
+    the_response.mimetype = 'application/json'
+    return the_response 
+
 

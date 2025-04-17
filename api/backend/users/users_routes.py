@@ -10,7 +10,7 @@ from backend.db_connection import db
 users = Blueprint('users', __name__)
 
 
-# Gets all users in the data base
+# Gets all users in the database
 @users.route('/all', methods=['GET'])
 def all_user():
     cursor = db.get_db().cursor()
@@ -28,15 +28,15 @@ def all_user():
     return the_response
 
 
-# Gets all users in the data base
-@users.route('/users/<int:course_id>/<int:section_id>/role/<string:role_id>', methods=['GET'])
-def get_all_users_of_role(course_id, section_id, role_id):
+# Gets te name of a user given an id
+@users.route('/users/<int:user_id>', methods=['GET'])
+def specific_user(user_id: int):
     cursor = db.get_db().cursor()
 
     query = f'''
-        SELECT userId, firstName, lastName
-        FROM users u JOIN user_course uc ON u.userId = uc.userId
-        WHERE uc.role = {role_id} AND uc.courseId = {course_id} AND uc.sectionId = {section_id}
+        SELECT firstName, lastName
+        FROM users
+        WHERE userId = {user_id}
     '''
     
     cursor.execute(query)
@@ -45,6 +45,30 @@ def get_all_users_of_role(course_id, section_id, role_id):
     the_response = make_response(jsonify(return_data))
     the_response.status_code = 200
     return the_response
+
+# Gets all users in the database
+@users.route('/users/<int:course_id>/<int:section_id>/role/<string:role_id>', methods=['GET'])
+def get_all_users_of_role(course_id, section_id, role_id):
+    cursor = db.get_db().cursor()
+
+    query = '''
+        SELECT u.userId, u.firstName, u.lastName
+        FROM users u 
+        JOIN user_course uc ON u.userId = uc.userId
+        WHERE uc.role = %s AND uc.courseId = %s AND uc.sectionId = %s
+    '''
+    
+    params = (role_id, course_id, section_id)
+
+    cursor.execute(query, params)
+    return_data = cursor.fetchall()
+    
+    the_response = make_response(jsonify(return_data))
+    the_response.status_code = 200
+    return the_response
+
+
+
 
 
 # Gets a specific user
@@ -97,7 +121,7 @@ def create_role(id):
     u_role = request_data.get('user_role')
     u_course = request_data.get('user_course')
     u_section = request_data.get('user_section')
-    is_active = request_data.get('isActive', 1)  # Get isActive or default to 1
+    is_active = request_data.get('isActive', 1)
 
     query = '''
         INSERT INTO user_course(userId, role, courseId, sectionId, isActive)

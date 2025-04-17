@@ -8,25 +8,64 @@ SideBarLinks()
 st.markdown("<h2>🔍 Search & Filter Messages</h2>", unsafe_allow_html=True)
 st.markdown("---")
 
+tempid = 1
 
 if st.button("Get All My Messages", use_container_width=True):
-    messages = requests.get('http://api:4000/m/messages').json()
+    messages = requests.get(f'http://api:4000/m/messages/{tempid}').json()
+    content_list = []
+    time_list = []
+    
+    for message in messages:
+        content_list.append(message['content'])
+        time_list.append(message['createdAt'])
     try:
-        st.dataframe(messages)
+        for i in range(len(content_list)):
+            st.write("**" + content_list[i] + "**")
+            st.write(time_list[i])
     except:
         st.write("Could not connect to database to get messages")
 
 
-
-
-with st.form("Get Specific Message", clear_on_submit=True):
-    group_name = st.text_input("Input ID number", placeholder="ID number")
+with st.form("Get Specific Message", clear_on_submit=False):
+    message_selected = requests.get(f'http://api:4000/m/messages/people/{tempid}').json()
     
-    submitted = st.form_submit_button("Search", use_container_width=True)
+    authors = []
+    author_id_key = {}
 
-    if group_name and submitted:
-        get_my_messages = requests.get(f'http://api:4000/m/messages/{group_name}').json()
+    for m in message_selected:
+        author_id = m['authorId']
+
+        author_info = requests.get(f'http://api:4000/u/users/{author_id}').json()
+
+
+        first_name = author_info[0]['firstName']
+        last_name = author_info[0]['lastName']
+
+        full_name = f"{first_name} {last_name}"
+        authors.append(full_name)
+        author_id_key.update({full_name: author_id})
+
+    message_list = []
+
+    message_select = st.selectbox("Find Your Messages", options=authors)
+
+    submitted = st.form_submit_button("Search", use_container_width=True)
+    if submitted:
+        get_my_messages = requests.get(f'http://api:4000/m/messages/{author_id_key[message_select]}/{tempid}').json()
         try:
-            st.dataframe(get_my_messages)
+            content_list = []
+            time_list = []
+            name_list = []
+            for message in get_my_messages:
+                content_list.append(message['content'])
+                time_list.append(message['createdAt'])
+                name_list.append(message['firstName'] + " " + message['lastName'])
+            
+            try:
+                for i in range(len(content_list)):
+                    st.write("**FROM: " + name_list[i] + " : " + content_list[i] + "**")
+                    st.write(time_list[i])
+            except:
+                st.write("Could not connect to database to get messages")
         except:
             st.write("Could not connect to database to get messages")
