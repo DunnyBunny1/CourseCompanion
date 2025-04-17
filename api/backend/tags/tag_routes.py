@@ -1,5 +1,4 @@
 from typing import List, Dict, Any, Tuple, Optional 
-import json
 from flask import Blueprint, request, jsonify, make_response, current_app, Response
 from backend.db_connection import db
 from pymysql.cursors import DictCursor
@@ -161,7 +160,7 @@ def search_tags():
     tag_id : str = tag_info["tag_id"]
     
     
-    # Create a base SQL query to retrieve all tag_names from
+    # Create a base SQL query to retrieve all tags from
     # our table. Based on the post request body, we will update
     # the WHERE cluase to match the search constraints 
     query: str = """
