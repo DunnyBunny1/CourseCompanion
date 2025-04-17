@@ -69,7 +69,6 @@ def search_user_role(id):
     the_response.status_code = 200
     return the_response
 
-
 # Add user with a certain role
 @users.route('/<id>/create/role', methods=['POST'])
 def create_role(id):
@@ -80,13 +79,14 @@ def create_role(id):
     u_role = request_data.get('user_role')
     u_course = request_data.get('user_course')
     u_section = request_data.get('user_section')
+    is_active = request_data.get('isActive', 1)  # Get isActive or default to 1
 
     query = '''
-        INSERT INTO user_course(userId, role, courseId, sectionId)
-        VALUES (%s, %s, %s, %s)
+        INSERT INTO user_course(userId, role, courseId, sectionId, isActive)
+        VALUES (%s, %s, %s, %s, %s)
     '''
     
-    cursor.execute(query, (id, u_role, u_course, u_section))
+    cursor.execute(query, (id, u_role, u_course, u_section, is_active))
     
     db.get_db().commit()
 
@@ -94,7 +94,6 @@ def create_role(id):
     the_response.status_code = 200
     the_response.mimetype = 'application/json'
     return the_response
- 
  
 # Remove user from a course
 @users.route('/<id>/delete/role', methods=['DELETE'])
