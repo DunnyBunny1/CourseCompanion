@@ -10,14 +10,14 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-# Display the appropriate sidebar links for the role of the logged in user
-SideBarLinks()
-
-st.write("Welcome to the course feeds page")
-
 # Set this page as the active page
 st.session_state["active_page"] = "course_feed_page"
 
+# Display the appropriate sidebar links for the role of the logged in user
+SideBarLinks()
+
+# Write a welcome message to the user 
+st.write("## Welcome to the Course Feeds page!")
 
 def get_posts_from_active_class(
     class_data: Dict[str, Tuple[int, int]],
@@ -29,15 +29,21 @@ def get_posts_from_active_class(
     :param class_data: a dictionary mapping each course name to its (sectionId, courseId) pair
     """
     # Retrieve the active class based on the dropdown choice
-    course_id, section_id = class_data[st.session_state["active_class"]]
-
+    course_id, section_id = class_data[st.session_state["active_class_name"]]
+    
     # Retrieve all the posts from the active class 
+    # Sort the posts by createdAt in descending order
     response: List[Dict[str, Any]] = requests.get(
         url="http://api:4000/po/posts", 
         params={
-            "courseId" : course_id, "sectionId" : section_id
+            "courseId" : course_id, "sectionId" : section_id, "sortBy" : "createdAt"
         }
     ).json()
+    
+    
+    # st.write(response)
+    
+    return response
 
     # response: List[Dict[str, Any]] = [
     #     {
@@ -75,11 +81,6 @@ def get_posts_from_active_class(
     #     },
     # ]
 
-    # Sort the posts from most newly created to least newly created
-    posts: List[Dict[str, Any]] = sorted(
-        response, key=lambda dict_item: dict_item["createdAt"], reverse=False
-    )
-    return posts
 
     # for post in posts:
     #     st.write(pformat(post))
@@ -129,9 +130,15 @@ def get_class_data() -> Dict[str, Tuple[int, int]]:
 
 def display_post(post: Dict[str, Any]):
     st.markdown(f"### {'📢 ' if post['isAnnouncement'] else '📝 '}{post['title']}")
-    # TODO: Play around with the data format
-    st.markdown(f"*Posted on {post['createdAt']}*")
+    
+    # Get the authorId of the poster 
+    author_id = post["authorId"]
+    # Get the name of the author - the response returned is a length-one list, so retrieve the 0th item
+    author_info : Dict[str, Any] = requests.get(f"http://api:4000/u/{author_id}").json()[0]
+        
+    st.markdown(f"*Posted on {post['createdAt']} by {author_info['firstName']} {author_info.get('lastName', '')}*")
     st.write(post["content"])
+    
 
     # If we are on the course feed page, then there could be other multiple posts
     # For the current post, add a button to denote which post we are on
@@ -145,6 +152,14 @@ def display_post(post: Dict[str, Any]):
 
 
 class_data: Dict[str, Tuple[int, int]] = get_class_data()
+
+def update_class_and_section():
+    st.write("Updating class data")
+    selected_class = st.session_state["active_class_name"]
+    course_id, section_id = class_data[selected_class]
+    st.session_state["active_course_id"] = course_id
+    st.session_state["active_section_id"] = section_id
+
 # st.write(pformat(class_data))
 
 # Use the keys of our dictionary (the class names) as our dropdown options
@@ -152,13 +167,47 @@ class_options = class_data.keys()
 
 # Create a dropdown menu - the response gets returned into the session state
 # Streamlit will automatically refresh this (kind of like a pub/sub) after each choice
-st.session_state["active_class"] = st.selectbox(
+# The key="active_class_name" will autoamtically save the user choice 
+# to active_class_name
+st.selectbox(
     "Which class would you like to view the feed for?",
     class_options,
+    key="active_class_name",
+    on_change=update_class_and_section,
 )
 
 
-st.write("You selected: ", st.session_state["active_class"])
+
+# # Set the active class info for future page s
+# st.session_state["active_course_id"] = course_id
+# st.session_state["active_section_id"] = section_id
+
+st.write("You selected: ", st.session_state["active_class_name"], class_data[ st.session_state["active_class_name"]])
+
+
+# Create 2 buttons: A new post button (on the left) and a search button the right 
+col1, col2, col3 = st.columns([1, 2, 1])
+
+with col1:
+    if st.button("New Post"):
+        st.switch_page("pages/new_post_page.py")
+with col3: 
+    if st.button("Search posts"):
+        st.switch_page("pages/search_posts_page.py")
+    
+# Add a separator b/w the search / new post buttons and the rest page 
+st.markdown('---')
+
+def add_ret_to_home_button(): 
+    """
+    Adds the `return to course feed home` button if we are within 
+    the course feed subpages but not on the course feed home page 
+    """
+    if st.session_state["active_page"] == "course_feed_page":
+        return 
+    if st.button("Return to Course Feed Home page"):
+        st.switch_page("pages/course_feed_page.py")
+
 
 # Get the posts from the active class
 # Streamlit will automatically refresh this each time a new choice is made in the dropdown,

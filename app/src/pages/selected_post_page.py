@@ -8,7 +8,15 @@ from matplotlib import pyplot as plt
 import streamlit as st
 from modules.nav import SideBarLinks
 import requests
-from pages.course_feed_page import display_post
+from pages.course_feed_page import display_post, add_ret_to_home_button
+
+
+# Set this page as the active page 
+st.session_state["active_page"] = "selected_post_page"
+
+# Display the appropriate sidebar links and buttons for the role of the logged in user
+add_ret_to_home_button()
+SideBarLinks()
 
 
 def display_comment(comment : Dict[str, Any]): 
@@ -53,10 +61,6 @@ def get_post_comments():
 # post_comments : List[List[Dict[str, Any]]] = get_comments_from_posts(class_posts)
 # st.write(f"You are viewing post {st.session_state['selected_post']['postId']}")
 
-# Set this page as the active page 
-st.session_state["active_page"] = "selected_post_page"
-
-
 # Display the active post 
 display_post(st.session_state['selected_post'])
 
@@ -68,7 +72,3 @@ comments : List[Dict[str, Any]] = get_post_comments()
 for comment in comments: 
     display_comment(comment)
 
-
-# Add a button to return to back to the course feed page 
-if st.button("Return to course feed page"):
-    st.switch_page("pages/course_feed_page.py")
