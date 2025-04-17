@@ -79,23 +79,7 @@ def get_all_posts():
     the_response.status_code = 200
     the_response.mimetype = 'application/json'
     return the_response
-<<<<<<< HEAD
-=======
 
-
-
-
-
-
-
-
->>>>>>> f831e93 (fixed up post_routes.py)
-
-
-
-
-
-# GET /posts/{id} - Retrieve a specific post by ID [Henry-3]
 @posts.route('/posts/<int:post_id>', methods=['GET'])
 def get_post(post_id):
     current_app.logger.info('GET /posts/<int:post_id> route')
@@ -146,11 +130,6 @@ def update_post(post_id):
     cursor = db.get_db().cursor()
     r = cursor.execute(query, data)
     db.get_db().commit()
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> f831e93 (fixed up post_routes.py)
     the_response = make_response(jsonify({"message": f"Post {post_id} updated successfully"}))
     the_response.status_code = 200
     the_response.mimetype = 'application/json'
@@ -170,11 +149,7 @@ def delete_post(post_id):
     cursor.execute(delete_query)
     db.get_db().commit()
 
-<<<<<<< HEAD
-    the_response = make_response(jsonify({"message": f"Post {post_id} deleted successfully"}))
-=======
     the_response = make_response(jsonify({"message": f"Post {post_id} created successfully"}))
->>>>>>> f831e93 (fixed up post_routes.py)
     the_response.status_code = 200
     the_response.mimetype = 'application/json'
     return the_response
@@ -210,10 +185,6 @@ def create_post():
     cursor = db.get_db().cursor()
     cursor.execute(query)
     db.get_db().commit()
-<<<<<<< HEAD
-=======
-
->>>>>>> f831e93 (fixed up post_routes.py)
     the_response = make_response(jsonify({"message": f"Post {post_id} created successfully"}))
     the_response.status_code = 200
     the_response.mimetype = 'application/json'
