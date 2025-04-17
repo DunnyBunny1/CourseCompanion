@@ -36,7 +36,7 @@ cd CourseCompanion
 
 2. Set up the environment variables:
    * Create a `.env` file in the `api` folder based on the provided `.env.template` file
-   * Ensure all required variables are set with appropriate values
+   * Ensure all required variables are set with appropriate values (MYSQL_ROOT_PASSWORD, DB_NAME...)
 
 ### Running the Application
 
