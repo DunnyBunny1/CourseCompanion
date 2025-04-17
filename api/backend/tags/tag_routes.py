@@ -148,12 +148,12 @@ def update_tag_by_id(id : int):
     response.mimetype = 'application/json'
     return response
 
-@tags.route("/tags/search", methods=["POST"])
+@tags.route("/tags/search", methods=["GET"])
 def search_tags():
-    current_app.logger.info('POST /tags/search route')
+    current_app.logger.info('GET /tags/search route')
     
     # Extract the post request body as a python dict
-    tag_info : Dict[str, Any] = request.json
+    tag_info : Dict[str, Any] = request.args
 
     # Extract the name & id from the tag info 
     tag_name : str = tag_info["tag_name"]
