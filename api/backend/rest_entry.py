@@ -12,6 +12,8 @@ from backend.posts.post_routes import posts
 from backend.tags.tag_routes import tags
 from backend.messages.messages_routes import messages
 from backend.course.courses_routes import courses
+from backend.analytics.analytics_routes import analytics
+
 
 def create_app():
     app = Flask(__name__)
@@ -38,6 +40,8 @@ def create_app():
 
     # Register the routes from each Blueprint with the app object
     # and give a url prefix to each
+    # TODO: Consider renaming post and comment prefixes, since the 
+    # products and customers rutes are gone now 
     app.logger.info('current_app(): registering blueprints with Flask app object.')   
     app.register_blueprint(posts,       url_prefix='/po')
     app.register_blueprint(comments,    url_prefix='/cmt')
@@ -46,6 +50,7 @@ def create_app():
     app.register_blueprint(users,       url_prefix='/u')
     app.register_blueprint(messages,    url_prefix='/m')
     app.register_blueprint(courses,    url_prefix='/crs')
+    app.register_blueprint(analytics, url_prefix='/stats')
 
     # Don't forget to return the app object
     return app
